@@ -9,7 +9,7 @@ import { RestaurantsContextProvider } from "./context/restaurantsContext";
 function App() {
   return (
     <RestaurantsContextProvider>
-      <div className="container mx-auto bg-red-300">
+      <div>
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
