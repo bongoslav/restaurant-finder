@@ -186,3 +186,9 @@ export const addReview = async (req: Request, res: Response) => {
     });
   }
 }
+
+export const addPhotoToRestaurant = async (req: Request, res: Response) => {
+  if (!req.file) return res.status(400).json({ error: "No photo uploaded." })
+
+  return res.status(200).json({ message: "File uploaded successfully." })
+}
