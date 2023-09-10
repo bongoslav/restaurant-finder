@@ -194,7 +194,7 @@ export const addReview = async (req: Request, res: Response) => {
   }
 }
 
-export const addPhotoToRestaurant = async (req: Request, res: Response) => {
+export const addCoverPhotoToRestaurant = async (req: Request, res: Response) => {
   if (!req.file) return res.status(400).json({ error: "No photo uploaded." })
 
   try {
@@ -203,6 +203,9 @@ export const addPhotoToRestaurant = async (req: Request, res: Response) => {
       { public_id: req.file.filename }
     )
     await cloudinary.uploader.add_tag(`restaurant-id-${req.params.id}`, [resultImage.public_id])
+    console.log(resultImage);
+
+    await Restaurant.update({ cover_photo: resultImage.url }, { where: { id: req.params.id } })
 
     return res.status(200).json({
       status: "Success",

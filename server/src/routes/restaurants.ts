@@ -1,6 +1,6 @@
 import express from "express";
 import {
-  addPhotoToRestaurant,
+  addCoverPhotoToRestaurant,
   addReview,
   createRestaurant,
   deleteRestaurant,
@@ -15,7 +15,7 @@ const router = express();
 router.get("/api/v1/restaurants", getAllRestaurants);
 router.get("/api/v1/restaurants/:id", getRestaurant);
 router.post("/api/v1/restaurants/add-restaurant", createRestaurant);
-router.post("/api/v1/restaurants/:id/add-photo", uploadRestaurantPhoto.single('restaurant-photo'), addPhotoToRestaurant)
+router.post("/api/v1/restaurants/:id/add-photo", uploadRestaurantPhoto.single('restaurant-photo'), addCoverPhotoToRestaurant)
 router.put("/api/v1/restaurants/:id", updateRestaurant);
 router.delete("/api/v1/restaurants/:id", deleteRestaurant);
 router.post("/api/v1/restaurants/:id/add-review", addReview);

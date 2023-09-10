@@ -15,6 +15,7 @@ export interface IRestaurant {
   name: string;
   location: string;
   price_range: number;
+  cover_photo: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -36,6 +37,10 @@ export default class Restaurant extends Model<IRestaurant> implements IRestauran
   @Max(5)
   @Column(DataType.INTEGER)
   declare price_range: number;
+
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  declare cover_photo: string;
 
   @HasMany(() => Review, "restaurant_id")
   declare Reviews: Review[];
