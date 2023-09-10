@@ -4,6 +4,13 @@ import Review from "../models/review.model"
 import sequelize from "../util/db/sequelize";
 import { IRestaurant, RestaurantWithReviewStats } from "../util/types";
 import { Request, Response } from "express";
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+})
 
 export const getAllRestaurants = async (req: Request, res: Response) => {
   try {
@@ -190,5 +197,20 @@ export const addReview = async (req: Request, res: Response) => {
 export const addPhotoToRestaurant = async (req: Request, res: Response) => {
   if (!req.file) return res.status(400).json({ error: "No photo uploaded." })
 
-  return res.status(200).json({ message: "File uploaded successfully." })
+  try {
+    const resultImage = await cloudinary.uploader.upload(
+      req.file.path,
+      { public_id: req.file.filename }
+    )
+    await cloudinary.uploader.add_tag(`restaurant-id-${req.params.id}`, [resultImage.public_id])
+
+    return res.status(200).json({
+      status: "Success",
+      data: {
+        message: `Successfully uploaded image for restaurant with id: ${req.params.id}`
+      }
+    });
+  } catch (err) {
+    return res.status(500).json(err)
+  }
 }

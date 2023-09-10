@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     // ? sanitize?
-    cb(null, Date.now() + "-" + file.originalname)
+    cb(null, Date.now() + "-" + Math.floor(Math.random() * 1e6) + path.extname(file.originalname))
   }
 })
 
@@ -33,6 +33,6 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: { fileSize: MAX_PHOTO_SIZE },
-}).single('restaurantPhoto');
+});
 
 export default upload
