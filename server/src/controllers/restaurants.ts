@@ -203,9 +203,23 @@ export const addCoverPhotoToRestaurant = async (req: Request, res: Response) => 
       { public_id: req.file.filename }
     )
     await cloudinary.uploader.add_tag(`restaurant-id-${req.params.id}`, [resultImage.public_id])
-    console.log(resultImage);
 
-    await Restaurant.update({ cover_photo: resultImage.url }, { where: { id: req.params.id } })
+    const restaurant = await Restaurant.findOne({ where: { id: req.params.id } });
+
+    if (!restaurant) {
+      return res.status(404).json({
+        status: "Error",
+        data: {
+          message: `Restaurant with id: ${req.params.id} not found.`
+        }
+      });
+    }
+
+    const newPhotos = restaurant.photos[0] == "https://res.cloudinary.com/dq2l8rm9k/image/upload/v1694446356/hoytjqnw7kqdzqmr794o.png"
+      ? [resultImage.url]
+      : [...restaurant.photos, resultImage.url];
+
+    await restaurant.update({ photos: newPhotos });
 
     return res.status(200).json({
       status: "Success",
@@ -214,6 +228,32 @@ export const addCoverPhotoToRestaurant = async (req: Request, res: Response) => 
       }
     });
   } catch (err) {
-    return res.status(500).json(err)
+    return res.status(400).json(err)
+  }
+}
+
+export const getRestaurantPhotos = async (req: Request, res: Response) => {
+  try {
+    const photos = await Restaurant.findAll({
+      attributes: ['photos'],
+      where: {
+        id: req.params.id
+      }
+    });
+
+    return res.status(200).json({
+      status: "success",
+      data: {
+        photos: photos
+      }
+    })
+  } catch (err) {
+    console.error(err);
+    res.status(404).json({
+      status: "error",
+      data: {
+        error: err,
+      },
+    });
   }
 }

@@ -7,6 +7,7 @@ import {
   Min,
   Table,
   Model,
+  BeforeValidate,
 } from 'sequelize-typescript';
 import Review from './review.model';
 
@@ -15,7 +16,7 @@ export interface IRestaurant {
   name: string;
   location: string;
   price_range: number;
-  cover_photo: string;
+  photos: string[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -39,10 +40,19 @@ export default class Restaurant extends Model<IRestaurant> implements IRestauran
   declare price_range: number;
 
   @AllowNull(true)
-  @Column(DataType.STRING)
-  declare cover_photo: string;
+  @Column(DataType.ARRAY(DataType.STRING))
+  declare photos: string[];
 
   @HasMany(() => Review, "restaurant_id")
   declare Reviews: Review[];
+
+  @BeforeValidate
+  static setDefaultPhotos(instance: Restaurant): void {
+    if (!instance.photos) {
+      instance.photos[
+        'https://res.cloudinary.com/dq2l8rm9k/image/upload/v1694446356/hoytjqnw7kqdzqmr794o.png'
+      ]
+    }
+  }
 }
 
