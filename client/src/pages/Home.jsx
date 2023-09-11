@@ -9,14 +9,16 @@ function Home() {
       <Header />
       <AddRestaurant />
 
-      <main className="flex-grow flex">
+      <main className="flex-grow flex flex-col md:flex-row">
         {/* Left section */}
-        <div className="w-full px-4">
+        <div className="w-full md:w-1/2 px-4">
           <RestaurantsList />
         </div>
 
         {/* Right section */}
-        <Map />
+        <div className="w-full md:w-1/2">
+          <Map />
+        </div>
       </main>
     </div>
   );

@@ -19,13 +19,15 @@ function RestaurantsList() {
   }, []);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
-      {restaurants &&
-        restaurants.map((restaurant) => {
-          return (
+    <div className="flex items-center justify-content mih-h-screen container mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 sm:grid-cols-2 gap-4">
+        {restaurants &&
+          restaurants.map((restaurant) => {
+            return (
               <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-          );
-        })}
+            );
+          })}
+      </div>
     </div>
   );
 }
