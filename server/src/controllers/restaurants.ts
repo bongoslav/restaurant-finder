@@ -31,7 +31,7 @@ export const getAllRestaurants = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.log(error);
+    console.error("getAllRestaurants error: ", error);
     res.status(404).json({
       status: "error",
       data: {

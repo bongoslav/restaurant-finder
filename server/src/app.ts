@@ -7,7 +7,6 @@ import restaurantRoutes from "./routes/restaurants";
 import multer from "multer";
 
 const app = express();
-const port = process.env.PORT || 3000;
 
 // middlewares
 app.use(cors({ origin: "http://localhost:5173" }));
@@ -24,7 +23,7 @@ app.use((err: Error, req, res, next: NextFunction) => {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(413).json({
         err_code: err.code,
-        err_message: `File size limit of ${process.env.MAX_PHOTO_SIZE.slice(0,1)}mb exceeded`,
+        err_message: `File size limit of ${process.env.MAX_PHOTO_SIZE.slice(0, 1)}mb exceeded`,
       });
     } else {
       return res.status(400).json({
@@ -40,7 +39,4 @@ app.use((err: Error, req, res, next: NextFunction) => {
   }
 })
 
-
-app.listen(port, () => {
-  return console.log(`Express is listening at http://localhost:${port}`);
-});
+export default app;
