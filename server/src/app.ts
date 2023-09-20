@@ -11,7 +11,9 @@ const app = express();
 // middlewares
 app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
-app.use(morgan("dev"));
+if (process.env.NODE_ENV !== "test") {
+  app.use(morgan("dev"));
+}
 
 // routes
 app.use(restaurantRoutes);
@@ -39,4 +41,4 @@ app.use((err: Error, req, res, next: NextFunction) => {
   }
 })
 
-export default app;
+export default app
