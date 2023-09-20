@@ -49,7 +49,7 @@ export default class Restaurant extends Model<IRestaurant> implements IRestauran
   @BeforeValidate
   static setDefaultPhotos(instance: Restaurant): void {
     if (!instance.photos) {
-      instance.photos[
+      instance.photos = [
         'https://res.cloudinary.com/dq2l8rm9k/image/upload/v1694446356/hoytjqnw7kqdzqmr794o.png'
       ]
     }
