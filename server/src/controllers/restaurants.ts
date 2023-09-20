@@ -12,7 +12,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 })
 
-export const getAllRestaurants = async (req: Request, res: Response) => {
+export const getAllRestaurantsWithReviews = async (req: Request, res: Response) => {
   try {
     const restaurantRatingData = await sequelize.query<RestaurantWithReviewStats>(
       `SELECT * FROM Restaurants
@@ -41,7 +41,7 @@ export const getAllRestaurants = async (req: Request, res: Response) => {
   }
 };
 
-export const getRestaurant = async (req: Request, res: Response) => {
+export const getRestaurantWithReviews = async (req: Request, res: Response) => {
   try {
     const restaurant = await sequelize.query<IRestaurant>(
       `SELECT * FROM restaurants
@@ -148,52 +148,6 @@ export const updateRestaurant = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteRestaurant = async (req: Request, res: Response) => {
-  const id: string = req.params.id;
-  try {
-    await Restaurant.destroy({ where: { id: id } })
-    res.status(200).json({
-      status: "success",
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(404).json({
-      status: "error",
-      data: {
-        error: error,
-      },
-    });
-  }
-};
-
-export const addReview = async (req: Request, res: Response) => {
-  try {
-    const newReview = await Review.create({
-      restaurant_id: Number(req.params.id),
-      name: req.body.name,
-      review: req.body.review,
-      rating: req.body.rating,
-    })
-
-
-    res.status(201).json({
-      status: "Success",
-      data: {
-        review: newReview[0]
-      }
-    }
-    )
-  } catch (err) {
-    console.error(err);
-    res.status(404).json({
-      status: "error",
-      data: {
-        error: err,
-      },
-    });
-  }
-}
-
 export const addCoverPhotoToRestaurant = async (req: Request, res: Response) => {
   if (!req.file) return res.status(400).json({ error: "No photo uploaded." })
 
@@ -224,11 +178,79 @@ export const addCoverPhotoToRestaurant = async (req: Request, res: Response) => 
     return res.status(200).json({
       status: "Success",
       data: {
-        message: `Successfully uploaded image for restaurant with id: ${req.params.id}`
+        message: `Successfully uploaded image for restaurant with id: ${req.params.id}`,
+        newPhotos: restaurant.photos
       }
     });
   } catch (err) {
     return res.status(400).json(err)
+  }
+}
+
+export const deleteRestaurant = async (req: Request, res: Response) => {
+  const id: string = req.params.id;
+  try {
+    await Restaurant.destroy({ where: { id: id } })
+    // todo: delete the photo from cloudinary
+    res.status(200).json({
+      status: "success",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({
+      status: "error",
+      data: {
+        error: error,
+      },
+    });
+  }
+};
+
+export const getAllReviews = async (req: Request, res: Response) => {
+  try {
+    const result = Review.findAll()
+    res.status(200).json({
+      status: "success",
+      data: {
+        reviews: result
+      }
+    })
+  } catch (error) {
+    console.error("getAllReviews error: ", error);
+    res.status(404).json({
+      status: "error",
+      data: {
+        error: error,
+      },
+    });
+  }
+}
+
+export const addReview = async (req: Request, res: Response) => {
+  try {
+    const newReview = await Review.create({
+      restaurant_id: Number(req.params.id),
+      name: req.body.name,
+      review: req.body.review,
+      rating: req.body.rating,
+    })
+
+
+    res.status(201).json({
+      status: "Success",
+      data: {
+        review: newReview[0]
+      }
+    }
+    )
+  } catch (err) {
+    console.error(err);
+    res.status(404).json({
+      status: "error",
+      data: {
+        error: err,
+      },
+    });
   }
 }
 
