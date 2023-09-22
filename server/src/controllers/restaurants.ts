@@ -191,7 +191,6 @@ export const deleteRestaurant = async (req: Request, res: Response) => {
   const id: string = req.params.id;
   try {
     await Restaurant.destroy({ where: { id: id } })
-    // todo: delete the photo from cloudinary
     cloudinary.api.delete_resources_by_tag(`restaurant-id-${id}`)
     res.status(200).json({
       status: "success",
