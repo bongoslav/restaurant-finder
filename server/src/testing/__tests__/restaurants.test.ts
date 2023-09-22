@@ -53,4 +53,10 @@ describe('Restaurant API', () => {
       .set('Content-Type', 'multipart/form-data')
       .expect(200)
   }, 10000)
+
+  it('should delete a restaurant', async () => {
+    await request(app)
+      .delete("/api/v1/restaurants/1")
+      .expect(200)
+  })
 });
