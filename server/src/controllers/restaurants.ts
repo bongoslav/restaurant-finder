@@ -169,7 +169,8 @@ export const addCoverPhotoToRestaurant = async (req: Request, res: Response) => 
       });
     }
 
-    const newPhotos = restaurant.photos[0] == "https://res.cloudinary.com/dq2l8rm9k/image/upload/v1694446356/hoytjqnw7kqdzqmr794o.png"
+    const newPhotos = restaurant.photos[0] ==
+      "https://res.cloudinary.com/dq2l8rm9k/image/upload/v1694446356/hoytjqnw7kqdzqmr794o.png"
       ? [resultImage.url]
       : [...restaurant.photos, resultImage.url];
 
