@@ -191,6 +191,7 @@ export const deleteRestaurant = async (req: Request, res: Response) => {
   const id: string = req.params.id;
   try {
     await Restaurant.destroy({ where: { id: id } })
+    await Review.destroy({ where: { restaurant_id: req.params.id } })
     cloudinary.api.delete_resources_by_tag(`restaurant-id-${id}`)
     res.status(200).json({
       status: "success",
@@ -228,6 +229,16 @@ export const getAllReviews = async (req: Request, res: Response) => {
 
 export const addReview = async (req: Request, res: Response) => {
   try {
+    const restaurant = await Restaurant.findByPk(req.params.id)
+    if (!restaurant) {
+      return res.status(404).json({
+        status: "error",
+        data: {
+          error: "Restaurant not found!",
+        },
+      })
+    }
+
     const newReview = await Review.create({
       restaurant_id: Number(req.params.id),
       name: req.body.name,
@@ -235,17 +246,16 @@ export const addReview = async (req: Request, res: Response) => {
       rating: req.body.rating,
     })
 
-
     res.status(201).json({
       status: "Success",
       data: {
-        review: newReview[0]
+        review: newReview.dataValues
       }
     }
     )
   } catch (err) {
     console.error(err);
-    res.status(404).json({
+    res.status(500).json({
       status: "error",
       data: {
         error: err,

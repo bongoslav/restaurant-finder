@@ -54,6 +54,23 @@ describe('Restaurant API', () => {
       .expect(200)
   }, 10000)
 
+  it('should add a review', async () => {
+    await request(app)
+      .post('/api/v1/restaurants/1/add-review')
+      .send({
+        name: "Thomas",
+        review: "It was a nice restaurant",
+        rating: "5"
+      })
+      .expect(201)
+  })
+
+  it('should get all reviews', async () => {
+    await request(app)
+      .get('/api/v1/reviews')
+      .expect(200);
+  })
+
   it('should delete a restaurant', async () => {
     await request(app)
       .delete("/api/v1/restaurants/1")
