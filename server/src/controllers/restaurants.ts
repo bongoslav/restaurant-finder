@@ -208,63 +208,6 @@ export const deleteRestaurant = async (req: Request, res: Response) => {
   }
 };
 
-export const getAllReviews = async (req: Request, res: Response) => {
-  try {
-    const result = Review.findAll()
-    res.status(200).json({
-      status: "success",
-      data: {
-        reviews: result
-      }
-    })
-  } catch (error) {
-    console.error("getAllReviews error: ", error);
-    res.status(404).json({
-      status: "error",
-      data: {
-        error: error,
-      },
-    });
-  }
-}
-
-export const addReview = async (req: Request, res: Response) => {
-  try {
-    const restaurant = await Restaurant.findByPk(req.params.id)
-    if (!restaurant) {
-      return res.status(404).json({
-        status: "error",
-        data: {
-          error: "Restaurant not found!",
-        },
-      })
-    }
-
-    const newReview = await Review.create({
-      restaurant_id: Number(req.params.id),
-      name: req.body.name,
-      review: req.body.review,
-      rating: req.body.rating,
-    })
-
-    res.status(201).json({
-      status: "Success",
-      data: {
-        review: newReview.dataValues
-      }
-    }
-    )
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      status: "error",
-      data: {
-        error: err,
-      },
-    });
-  }
-}
-
 export const getRestaurantPhotos = async (req: Request, res: Response) => {
   try {
     const photos = await Restaurant.findAll({
