@@ -5,39 +5,50 @@ import {
   Table,
   BelongsTo,
   Model,
+  ForeignKey,
 } from 'sequelize-typescript';
 import Restaurant from './restaurant.model';
+import User from './user.model';
 
 interface IReview {
   id?: number;
-  restaurant_id: number;
+  restaurantId: number;
   name: string;
   review: string;
   rating: number;
+  authorId: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 @Table({ tableName: 'reviews' })
 export default class Review extends Model<IReview> implements IReview {
-  declare id: number;
+  id: number;
 
+  @AllowNull(false)
   @Column(DataType.INTEGER)
-  declare restaurant_id: number;
+  restaurantId: number;
 
   @AllowNull(false)
   @Column(DataType.STRING(50))
-  declare name: string;
+  name: string;
 
   @AllowNull(false)
   @Column(DataType.STRING)
-  declare review: string;
+  review: string;
 
   @AllowNull(false)
   @Column(DataType.FLOAT)
-  declare rating: number;
+  rating: number;
 
-  // Define the association with the Restaurant model
-  @BelongsTo(() => Restaurant, "restaurant_id")
-  declare Restaurant: Restaurant;
+  @AllowNull(false)
+  @ForeignKey(() => User)
+  @Column(DataType.INTEGER)
+  authorId: number;
+
+  @BelongsTo(() => Restaurant, { foreignKey: "restaurantId" })
+  Restaurant: Restaurant;
+
+  @BelongsTo(() => User, { foreignKey: "authorId" })
+  User: User;
 }

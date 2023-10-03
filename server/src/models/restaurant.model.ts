@@ -8,43 +8,55 @@ import {
   Table,
   Model,
   BeforeValidate,
+  BelongsTo,
+  ForeignKey,
 } from 'sequelize-typescript';
 import Review from './review.model';
+import User from './user.model';
 
 export interface IRestaurant {
   id?: number;
   name: string;
   location: string;
-  price_range: number;
+  priceRange: number;
   photos: string[];
+  ownerId: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 @Table({ tableName: 'restaurants' })
 export default class Restaurant extends Model<IRestaurant> implements IRestaurant {
-  declare id: number;
+  id: number;
 
   @AllowNull(false)
   @Column(DataType.STRING)
-  declare name: string
+  name: string
 
   @AllowNull(false)
   @Column(DataType.STRING)
-  declare location: string
+  location: string
 
   @AllowNull(false)
   @Min(1)
   @Max(5)
   @Column(DataType.INTEGER)
-  declare price_range: number;
+  priceRange: number;
 
   @AllowNull(true)
   @Column(DataType.ARRAY(DataType.STRING))
-  declare photos: string[];
+  photos: string[];
 
-  @HasMany(() => Review, "restaurant_id")
-  declare Reviews: Review[];
+  @AllowNull(false)
+  @ForeignKey(() => User)
+  @Column(DataType.INTEGER)
+  ownerId: number;
+
+  @HasMany(() => Review, { foreignKey: "restaurantId" })
+  Reviews: Review[];
+
+  @BelongsTo(() => User, { foreignKey: "ownerId" })
+  User: User;
 
   @BeforeValidate
   static setDefaultPhotos(instance: Restaurant): void {

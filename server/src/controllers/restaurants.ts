@@ -68,7 +68,7 @@ export const getRestaurantWithReviews = async (req: Request, res: Response) => {
     }
 
     const reviews = await Review.findAll({
-      where: { restaurant_id: req.params.id },
+      where: { restaurantId: req.params.id },
     })
 
     res.status(200).json({
@@ -93,12 +93,12 @@ export const getRestaurantWithReviews = async (req: Request, res: Response) => {
 export const createRestaurant = async (req: Request, res: Response) => {
   const name: string = req.body.name;
   const location: string = req.body.location;
-  const price_range: number = req.body.price_range;
+  const priceRange: number = req.body.price_range;
   try {
     const result = await Restaurant.create({
       name: name,
       location: location,
-      price_range: price_range
+      priceRange: priceRange
     })
 
     res.status(201).json({
@@ -121,13 +121,13 @@ export const createRestaurant = async (req: Request, res: Response) => {
 export const updateRestaurant = async (req: Request, res: Response) => {
   const name: string = req.body.name;
   const location: string = req.body.location;
-  const price_range: number = req.body.price_range;
+  const priceRange: number = req.body.price_range;
   const id: string = req.params.id;
   try {
     const result = await Restaurant.update({
       name: name,
       location: location,
-      price_range: price_range
+      priceRange: priceRange
     },
       { where: { id: id } })
 
@@ -192,7 +192,7 @@ export const deleteRestaurant = async (req: Request, res: Response) => {
   const id: string = req.params.id;
   try {
     await Restaurant.destroy({ where: { id: id } })
-    await Review.destroy({ where: { restaurant_id: req.params.id } })
+    await Review.destroy({ where: { restaurantId: req.params.id } })
     cloudinary.api.delete_resources_by_tag(`restaurant-id-${id}`)
     res.status(200).json({
       status: "success",

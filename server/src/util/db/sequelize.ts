@@ -1,6 +1,7 @@
 import { Sequelize } from 'sequelize-typescript';
 import Restaurant from '../../models/restaurant.model';
 import Review from '../../models/review.model';
+import User from '../../models/user.model';
 
 const sequelize = new Sequelize({
   database: process.env.DB_NAME,
@@ -17,7 +18,8 @@ const sequelize = new Sequelize({
 
 sequelize.addModels([
   Restaurant,
-  Review
+  Review,
+  User
 ])
 
 export default sequelize;

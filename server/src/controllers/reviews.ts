@@ -57,7 +57,7 @@ export const addReview = async (req: Request, res: Response) => {
     }
 
     const newReview = await Review.create({
-      restaurant_id: Number(req.params.id),
+      restaurantId: Number(req.params.id),
       name: req.body.name,
       review: req.body.review,
       rating: req.body.rating,
