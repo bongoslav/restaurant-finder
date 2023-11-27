@@ -37,7 +37,7 @@ export default class User extends Model<IUser> implements IUser {
   email: string;
 
   @AllowNull(false)
-  @Column(DataType.STRING(50))
+  @Column(DataType.TEXT)
   password: string
 
   @Unique

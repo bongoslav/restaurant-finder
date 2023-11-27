@@ -1,20 +1,7 @@
-export interface IRestaurant {
-  id: number;
-  name: string;
-  location: string;
-  price_range: number;
-}
-
-export interface IReview {
-  id: number;
-  restaurant_id: number;
-  name: string;
-  review: string;
-  rating: number;
-}
+import { IRestaurant } from "../models/restaurant.model";
 
 export interface RestaurantWithReviewStats extends IRestaurant {
-  restaurant_id: number;
-  review_count: number;
-  average_rating: number;
+  restaurantId: number;
+  reviewCount: number;
+  averageRating: number;
 }

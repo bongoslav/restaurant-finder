@@ -1,8 +1,8 @@
 import { QueryTypes } from "sequelize";
-import Restaurant from "../models/restaurant.model";
+import Restaurant, { IRestaurant } from "../models/restaurant.model";
 import Review from "../models/review.model"
 import sequelize from "../util/db/sequelize";
-import { IRestaurant, RestaurantWithReviewStats } from "../util/types";
+import { RestaurantWithReviewStats } from "../util/types";
 import { Request, Response } from "express";
 import { v2 as cloudinary } from 'cloudinary';
 
@@ -15,16 +15,16 @@ cloudinary.config({
 export const getAllRestaurantsWithReviews = async (req: Request, res: Response) => {
   try {
     const restaurantRatingData = await sequelize.query<RestaurantWithReviewStats>(
-      `SELECT * FROM Restaurants
+      `SELECT * FROM restaurants
       LEFT JOIN (
-        SELECT restaurant_id, COUNT(*), round(avg(rating)::numeric, 1) AS average_rating
-        FROM Reviews
-        GROUP BY restaurant_id
-      ) Reviews ON restaurants.id = Reviews.restaurant_id;`,
+        SELECT reviews."restaurantId", COUNT(*), round(avg(rating)::numeric, 1) AS averageRating
+        FROM reviews
+        GROUP BY reviews."restaurantId"
+      ) reviews ON restaurants.id = reviews."restaurantId";`,
       { type: QueryTypes.SELECT }
     );
 
-    res.status(200).json({
+    return res.status(200).json({
       status: "success",
       data: {
         restaurants: restaurantRatingData,
@@ -46,10 +46,10 @@ export const getRestaurantWithReviews = async (req: Request, res: Response) => {
     const restaurant = await sequelize.query<IRestaurant>(
       `SELECT * FROM restaurants
       LEFT JOIN (
-        SELECT restaurant_id, COUNT(*), round(avg(rating)::numeric, 1) AS average_rating
+        SELECT "restaurantId", COUNT(*), round(avg(rating)::numeric, 1) AS average_rating
         FROM reviews
-        GROUP BY restaurant_id
-      ) reviews ON restaurants.id = reviews.restaurant_id
+        GROUP BY "restaurantId"
+      ) reviews ON restaurants.id = reviews."restaurantId"
       WHERE id=$1;`,
       {
         bind: [req.params.id],

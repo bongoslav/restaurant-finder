@@ -4,6 +4,8 @@ import express, { NextFunction } from "express";
 import morgan from "morgan";
 import cors from "cors";
 import restaurantRoutes from "./routes/restaurants";
+import reviewRoutes from "./routes/reviews";
+import authRoutes from "./routes/auth";
 import multer from "multer";
 
 const app = express();
@@ -17,6 +19,8 @@ if (process.env.NODE_ENV !== "test") {
 
 // routes
 app.use(restaurantRoutes);
+app.use(reviewRoutes);
+app.use(authRoutes);
 
 // error handling middleware
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

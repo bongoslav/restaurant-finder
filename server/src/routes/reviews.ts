@@ -14,3 +14,5 @@ router.get("/api/v1/reviews/:id", getReview)
 router.post("/api/v1/restaurants/:id/add-review", addReview);
 router.patch("/api/v1/reviews/:id", editReview)
 router.delete("/api/v1/reviews/:id", deleteReview)
+
+export default router
