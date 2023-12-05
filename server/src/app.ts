@@ -7,10 +7,12 @@ import restaurantRoutes from "./routes/restaurants";
 import reviewRoutes from "./routes/reviews";
 import authRoutes from "./routes/auth";
 import multer from "multer";
+import cookieParser from "cookie-parser";
 
 const app = express();
 
 // middlewares
+app.use(cookieParser());
 app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
 if (process.env.NODE_ENV !== "test") {

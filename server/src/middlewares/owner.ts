@@ -7,7 +7,7 @@ export const isOwner = async (req: AuthenticatedRequest, res: Response, next: Ne
   let restaurant: Restaurant;
   let user: User;
   try {
-    user = await User.findOne({ where: { email: req.userData.email } })
+    user = await User.findOne({ where: { id: req.userData.userId } })
   } catch (err) {
     return res.status(400).json({ message: "User not found" })
   }

@@ -8,6 +8,7 @@ import {
   AutoIncrement,
   AllowNull,
   Unique,
+  Default,
 } from 'sequelize-typescript';
 import Restaurant from './restaurant.model';
 import Review from './review.model';
@@ -20,6 +21,7 @@ interface IUser {
   name: string;
   restaurants: Restaurant[];
   reviews: Review[];
+  tokenVersion: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -48,6 +50,11 @@ export default class User extends Model<IUser> implements IUser {
   @AllowNull(false)
   @Column(DataType.STRING(50))
   name: string;
+
+  @AllowNull(true)
+  @Default(0)
+  @Column(DataType.NUMBER)
+  tokenVersion: number;
 
   @HasMany(() => Restaurant, { foreignKey: "ownerId" })
   restaurants: Restaurant[]
