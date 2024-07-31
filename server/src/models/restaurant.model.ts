@@ -1,70 +1,28 @@
-import {
-  AllowNull,
-  Column,
-  DataType,
-  HasMany,
-  Max,
-  Min,
-  Table,
-  Model,
-  BeforeValidate,
-  BelongsTo,
-  ForeignKey,
-} from 'sequelize-typescript';
-import Review from './review.model';
-import User from './user.model';
+import mongoose from "mongoose";
 
-export interface IRestaurant {
-  id?: number;
-  name: string;
-  location: string;
-  priceRange: number;
-  photos: string[];
-  ownerId: number;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+const reviewSchema = new mongoose.Schema(
+  {
+    title: String,
+    authorId: mongoose.Schema.ObjectId,
+    rating: Number,
+    text: String,
+  },
+  { timestamps: true }
+);
 
-@Table({ tableName: 'restaurants' })
-export default class Restaurant extends Model<IRestaurant> implements IRestaurant {
-  id: number;
+const restaurantSchema = new mongoose.Schema(
+  {
+    name: String,
+    location: String,
+    priceRange: Number,
+    images: [String],
+    hours: [String],
+    cuisine: String,
+    reviews: [reviewSchema],
+  },
+  { timestamps: true }
+);
 
-  @AllowNull(false)
-  @Column(DataType.STRING)
-  name: string
+const Restaurant = mongoose.model("Restaurant", restaurantSchema);
 
-  @AllowNull(false)
-  @Column(DataType.STRING)
-  location: string
-
-  @AllowNull(false)
-  @Min(1)
-  @Max(5)
-  @Column(DataType.INTEGER)
-  priceRange: number;
-
-  @AllowNull(true)
-  @Column(DataType.ARRAY(DataType.STRING))
-  photos: string[];
-
-  @AllowNull(false)
-  @ForeignKey(() => User)
-  @Column(DataType.INTEGER)
-  ownerId: number;
-
-  @HasMany(() => Review, { foreignKey: "restaurantId" })
-  Reviews: Review[];
-
-  @BelongsTo(() => User, { foreignKey: "ownerId" })
-  User: User;
-
-  @BeforeValidate
-  static setDefaultPhotos(instance: Restaurant): void {
-    if (!instance.photos) {
-      instance.photos = [
-        'https://res.cloudinary.com/dq2l8rm9k/image/upload/v1694446356/hoytjqnw7kqdzqmr794o.png'
-      ]
-    }
-  }
-}
-
+export default Restaurant;
