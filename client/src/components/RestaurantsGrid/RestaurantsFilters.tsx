@@ -47,6 +47,8 @@ const RestaurantsFilters = ({
     []
   );
 
+  // lodash is highly optimized
+  // if no `useMemo` -> the debounce function will be recreated on every rerender
   const debouncedSearch = useMemo(
     () => debounce((value: string) => setSearchTerm(value), 300),
     [setSearchTerm]
