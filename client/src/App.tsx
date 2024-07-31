@@ -2,7 +2,7 @@ import { Container, Theme } from "@radix-ui/themes";
 import Header from "./components/Header";
 import useTheme from "./hooks/useTheme";
 import { ThemeContext } from "./context/themeContext";
-import RestaurantGrid from "./components/RestaurantGrid";
+import { Outlet } from "react-router-dom";
 
 function App() {
   const { theme, toggleTheme } = useTheme();
@@ -13,7 +13,7 @@ function App() {
         <Container size="4">
           <Header />
           <main>
-            <RestaurantGrid />
+            <Outlet />
           </main>
         </Container>
       </Theme>

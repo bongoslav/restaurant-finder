@@ -6,6 +6,7 @@ export default interface Restaurant {
   location: string;
   priceRange: number;
   images: string[];
+  hours: string[];
   cuisine: string;
   reviews: Review[];
 }

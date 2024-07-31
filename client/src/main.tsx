@@ -1,36 +1,31 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
-// import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "@radix-ui/themes/styles.css";
-// import LoginPage from "./pages/LoginPage.tsx";
-// import RestaurantGrid from "./components/RestaurantGrid.tsx";
+import RestaurantGrid from "./components/RestaurantsGrid/RestaurantGrid.tsx";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import RestaurantDetailsPage from "./pages/RestaurantDetailsPage.tsx";
 
-// // TODO: loader, error page
-// export const router = createBrowserRouter([
-//   {
-//     path: "/",
-//     element: <App />,
-//     children: [
-//       {
-//         path: "",
-//         element: <RestaurantGrid />, 
-//       },
-//       {
-//         path: "login",
-//         element: <LoginPage />, 
-//       },
-//       // {
-//       //   path: "signup",
-//       //   element: <SignupPage />, 
-//       // },
-//     ],
-//   },
-// ]);
+// TODO: loader, error page
+export const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <App />,
+    children: [
+      {
+        path: "",
+        element: <RestaurantGrid />,
+      },
+      {
+        path: "restaurant/:id",
+        element: <RestaurantDetailsPage />,
+      },
+    ],
+  },
+]);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    {/* <RouterProvider router={router} /> */}
-    <App />
+    <RouterProvider router={router} />
   </React.StrictMode>
 );
