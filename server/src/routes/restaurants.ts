@@ -1,5 +1,11 @@
 import express from "express";
-import { getAllRestaurants } from "../controllers/restaurants";
+import {
+  createRestaurant,
+  getAllRestaurants,
+  getRestaurantById,
+  updateRestaurant,
+  deleteRestaurant,
+} from "../controllers/restaurants";
 // import uploadRestaurantPhoto from "../middlewares/uploadRestaurantPhoto";
 // import { isLoggedIn } from "../middlewares/loggedIn";
 // import { isOwner } from "../middlewares/owner";
@@ -7,10 +13,10 @@ import { getAllRestaurants } from "../controllers/restaurants";
 const router = express();
 
 router.get("/restaurants", getAllRestaurants);
-// router.get("/restaurants/:id", getRestaurantWithReviews);
-// router.post("/restaurants/add-restaurant", isLoggedIn, isOwner, createRestaurant);
-// router.patch("/restaurants/:id", isLoggedIn, isOwner, updateRestaurant);
-// router.delete("/restaurants/:id", isLoggedIn, isOwner, deleteRestaurant);
+router.get("/restaurants/:id", getRestaurantById);
+router.post("/restaurants", createRestaurant);
+router.put("/restaurants/:id", updateRestaurant);
+router.delete("/restaurants/:id", deleteRestaurant);
 
 // router.post("/api/v1/restaurants/:id/add-photo",
 //   isLoggedIn,

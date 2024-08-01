@@ -60,237 +60,130 @@ export const getAllRestaurants = async (req: Request, res: Response) => {
   }
 };
 
-// export const getAllRestaurantsWithReviews = async (
-//   req: Request,
-//   res: Response
-// ) => {
-//   try {
-//     const restaurantRatingData =
-//       await sequelize.query<RestaurantWithReviewStats>(
-//         `SELECT * FROM restaurants
-//       LEFT JOIN (
-//         SELECT reviews."restaurantId", COUNT(*), round(avg(rating)::numeric, 1) AS averageRating
-//         FROM reviews
-//         GROUP BY reviews."restaurantId"
-//       ) reviews ON restaurants.id = reviews."restaurantId";`,
-//         { type: QueryTypes.SELECT }
-//       );
+export const getRestaurantById = async (req: Request, res: Response) => {
+  const id = req.params.id;
 
-//     return res.status(200).json({
-//       status: "success",
-//       data: {
-//         restaurants: restaurantRatingData,
-//       },
-//     });
-//   } catch (error) {
-//     console.error("getAllRestaurants error: ", error);
-//     res.status(404).json({
-//       status: "error",
-//       data: {
-//         error: error,
-//       },
-//     });
-//   }
-// };
+  try {
+    const result = await restaurantService.getRestaurantById(id);
 
-// export const getRestaurantWithReviews = async (req: Request, res: Response) => {
-//   try {
-//     const restaurant = await sequelize.query<IRestaurant>(
-//       `SELECT * FROM restaurants
-//       LEFT JOIN (
-//         SELECT "restaurantId", COUNT(*), round(avg(rating)::numeric, 1) AS average_rating
-//         FROM reviews
-//         GROUP BY "restaurantId"
-//       ) reviews ON restaurants.id = reviews."restaurantId"
-//       WHERE id=$1;`,
-//       {
-//         bind: [req.params.id],
-//         type: QueryTypes.SELECT,
-//       }
-//     );
+    res.status(200).json({
+      status: "success",
+      data: result,
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "Invalid restaurant ID") {
+        console.error("Error in getRestaurantById:", error);
+        res.status(400).json({
+          status: "error",
+          message: error.message,
+        });
+      } else if (error.message === "Restaurant not found") {
+        console.error("Error in getRestaurantById:", error);
+        res.status(404).json({
+          status: "error",
+          message: error.message,
+        });
+      }
+    } else {
+      console.error("Error in getRestaurantById:", error);
+      res.status(500).json({
+        status: "error",
+        message: error.message,
+      });
+    }
+  }
+};
 
-//     // TODO: render an error page!!!
-//     if (restaurant.length === 0) {
-//       return res.status(404).json({
-//         status: "error",
-//         data: {
-//           error: "Restaurant not found!",
-//         },
-//       });
-//     }
+export const createRestaurant = async (req: Request, res: Response) => {
+  try {
+    const { name, location, priceRange, cuisine } = req.body;
 
-//     const reviews = await Review.findAll({
-//       where: { restaurantId: req.params.id },
-//     });
+    const result = await restaurantService.createRestaurant(
+      name,
+      location,
+      priceRange,
+      cuisine
+    );
 
-//     res.status(200).json({
-//       status: "success",
-//       data: {
-//         restaurant: restaurant[0],
-//         reviews: reviews,
-//       },
-//     });
-//   } catch (error) {
-//     // todo: error page!!!
-//     console.log(error);
-//     res.status(404).json({
-//       status: "error",
-//       data: {
-//         error: error,
-//       },
-//     });
-//   }
-// };
+    res.status(201).json({
+      status: "success",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Error in createRestaurant:", error);
+    if (error instanceof Error && error.message === "Missing required fields") {
+      res.status(400).json({
+        status: "error",
+        message: "Missing required fields",
+      });
+    } else {
+      console.error("Error in createRestaurant:", error);
+      res.status(500).json({
+        status: "error",
+        message: "An error occurred while creating the restaurant",
+      });
+    }
+  }
+};
 
-// export const createRestaurant = async (req: Request, res: Response) => {
-//   const name: string = req.body.name;
-//   const location: string = req.body.location;
-//   const priceRange: number = req.body.price_range;
-//   try {
-//     const result = await Restaurant.create({
-//       name: name,
-//       location: location,
-//       priceRange: priceRange,
-//     });
+export const updateRestaurant = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    const body: restaurantService.UpdateRestaurantBody = req.body;
+    const updatedRestaurant = await restaurantService.updateRestaurant(
+      id,
+      body
+    );
 
-//     res.status(201).json({
-//       status: "success",
-//       data: {
-//         restaurant: result,
-//       },
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(404).json({
-//       status: "error",
-//       data: {
-//         error: error,
-//       },
-//     });
-//   }
-// };
+    if (!updatedRestaurant) {
+      return res.status(404).json({
+        status: "error",
+        message: "Restaurant not found",
+      });
+    }
 
-// export const updateRestaurant = async (req: Request, res: Response) => {
-//   const name: string = req.body.name;
-//   const location: string = req.body.location;
-//   const priceRange: number = req.body.price_range;
-//   const id: string = req.params.id;
-//   try {
-//     const result = await Restaurant.update(
-//       {
-//         name: name,
-//         location: location,
-//         priceRange: priceRange,
-//       },
-//       { where: { id: id } }
-//     );
+    res.status(200).json({
+      status: "success",
+      data: updatedRestaurant,
+    });
+  } catch (error) {
+    console.error("Error in updateRestaurant:", error);
+    res.status(500).json({
+      status: "error",
+      message: "An error occurred while updating the restaurant",
+    });
+  }
+};
 
-//     res.status(200).json({
-//       status: "success",
-//       data: {
-//         restaurant: result[0],
-//       },
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(404).json({
-//       status: "error",
-//       data: {
-//         error: error,
-//       },
-//     });
-//   }
-// };
+export const deleteRestaurant = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
 
-// export const addCoverPhotoToRestaurant = async (
-//   req: Request,
-//   res: Response
-// ) => {
-//   if (!req.file) return res.status(400).json({ error: "No photo uploaded." });
+    const isDeleted = await restaurantService.deleteRestaurant(id);
 
-//   try {
-//     const resultImage = await cloudinary.uploader.upload(req.file.path, {
-//       public_id: req.file.filename,
-//     });
-//     await cloudinary.uploader.add_tag(`restaurant-id-${req.params.id}`, [
-//       resultImage.public_id,
-//     ]);
+    if (!isDeleted) {
+      return res.status(404).json({
+        status: "error",
+        message: "Restaurant not found",
+      });
+    }
 
-//     const restaurant = await Restaurant.findOne({
-//       where: { id: req.params.id },
-//     });
-
-//     if (!restaurant) {
-//       return res.status(404).json({
-//         status: "Error",
-//         data: {
-//           message: `Restaurant with id: ${req.params.id} not found.`,
-//         },
-//       });
-//     }
-
-//     const newPhotos =
-//       restaurant.photos[0] ==
-//       "https://res.cloudinary.com/dq2l8rm9k/image/upload/v1694446356/hoytjqnw7kqdzqmr794o.png"
-//         ? [resultImage.url]
-//         : [...restaurant.photos, resultImage.url];
-
-//     await restaurant.update({ photos: newPhotos });
-
-//     return res.status(200).json({
-//       status: "Success",
-//       data: {
-//         message: `Successfully uploaded image for restaurant with id: ${req.params.id}`,
-//         newPhotos: restaurant.photos,
-//       },
-//     });
-//   } catch (err) {
-//     return res.status(400).json(err);
-//   }
-// };
-
-// export const deleteRestaurant = async (req: Request, res: Response) => {
-//   const id: string = req.params.id;
-//   try {
-//     await Restaurant.destroy({ where: { id: id } });
-//     await Review.destroy({ where: { restaurantId: req.params.id } });
-//     cloudinary.api.delete_resources_by_tag(`restaurant-id-${id}`);
-//     res.status(200).json({
-//       status: "success",
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(404).json({
-//       status: "error",
-//       data: {
-//         error: error,
-//       },
-//     });
-//   }
-// };
-
-// export const getRestaurantPhotos = async (req: Request, res: Response) => {
-//   try {
-//     const photos = await Restaurant.findAll({
-//       attributes: ["photos"],
-//       where: {
-//         id: req.params.id,
-//       },
-//     });
-
-//     return res.status(200).json({
-//       status: "success",
-//       data: {
-//         photos: photos,
-//       },
-//     });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(404).json({
-//       status: "error",
-//       data: {
-//         error: err,
-//       },
-//     });
-//   }
-// };
+    res.status(200).json({
+      status: "success",
+      message: "Restaurant successfully deleted",
+    });
+  } catch (error) {
+    console.error("Error in deleteRestaurant:", error);
+    if (error instanceof Error && error.message === "Invalid restaurant ID") {
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid restaurant ID",
+      });
+    }
+    res.status(500).json({
+      status: "error",
+      message: "An error occurred while deleting the restaurant",
+    });
+  }
+};
