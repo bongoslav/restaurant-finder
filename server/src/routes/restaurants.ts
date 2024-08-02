@@ -18,10 +18,4 @@ router.post("/restaurants", createRestaurant);
 router.put("/restaurants/:id", updateRestaurant);
 router.delete("/restaurants/:id", deleteRestaurant);
 
-// router.post("/api/v1/restaurants/:id/add-photo",
-//   isLoggedIn,
-//   uploadRestaurantPhoto.single('restaurant-photo'),
-//   addCoverPhotoToRestaurant);
-// router.get("/api/v1/restaurants/:id/get-photos", getRestaurantPhotos);
-
 export default router;

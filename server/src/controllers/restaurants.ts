@@ -49,7 +49,13 @@ export const getAllRestaurants = async (req: Request, res: Response) => {
 
     res.status(200).json({
       status: "success",
-      data: result,
+      data: result.restaurants,
+      pagination: {
+        currentPage: page,
+        totalPages: result.totalPages,
+        totalRestaurants: result.totalRestaurants,
+        hasNextPage: page < result.totalPages,
+      },
     });
   } catch (error) {
     console.error("Error in getAllRestaurants:", error);
