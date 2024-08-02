@@ -65,12 +65,32 @@ export const getReviewForRestaurant = async (
   reviewId: Types.ObjectId
 ) => {
   const restaurant = await checkForRestaurant(restaurantId);
-  console.log(restaurant.reviews[0]._id);
-  console.log(reviewId);
 
   const review = restaurant.reviews.find((review) =>
     review._id.equals(reviewId)
   );
 
+  if (!review) {
+    throw new Error("Review not found")
+  }
+
   return review;
+};
+
+export const deleteReview = async (
+  restaurantId: string,
+  reviewId: Types.ObjectId
+) => {
+  const result = await Restaurant.updateOne(
+    { _id: restaurantId },
+    { $pull: { reviews: { _id: reviewId } } }
+  );
+
+  if (result.matchedCount === 0) {
+    throw new Error("Restaurant not found");
+  }
+
+  if (result.modifiedCount === 0) {
+    throw new Error("Review not found");
+  }
 };

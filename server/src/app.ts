@@ -20,7 +20,7 @@ if (process.env.NODE_ENV !== "test") {
 
 // routes
 app.use("/api/v1", restaurantRoutes);
-app.use("/api/v1/restaurants", reviewRoutes)
+app.use("/api/v1/restaurants", reviewRoutes);
 // app.use(authRoutes);
 
 // error handling middleware

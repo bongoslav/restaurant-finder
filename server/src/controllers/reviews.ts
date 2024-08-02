@@ -103,10 +103,37 @@ export const getReviewForRestaurant = async (req: Request, res: Response) => {
       data: review,
     });
   } catch (error) {
-    if (error.message === "Restaurant not found") {
+    if (
+      error.message === "Restaurant not found" ||
+      error.message === "Review not found"
+    ) {
       res.status(404).json({
         status: "error",
         message: error.message,
+      });
+    } else {
+      res.status(500).json({
+        status: "error",
+        message: "An error occurred while fetching reviews.",
+      });
+    }
+  }
+};
+
+export const deleteReview = async (req: Request, res: Response) => {
+  try {
+    const { restaurantId, reviewId } = req.params;
+    const reviewObjectId = new Types.ObjectId(reviewId);
+    await reviewService.deleteReview(restaurantId, reviewObjectId);
+    res.status(204).send();
+  } catch (error) {
+    if (
+      error.message === "Restaurant not found" ||
+      error.message === "Review not found"
+    ) {
+      res.status(500).json({
+        status: "error",
+        message: "An error occurred while deleting the review.",
       });
     } else {
       res.status(500).json({
