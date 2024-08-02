@@ -1,131 +1,35 @@
 import { Request, Response } from "express";
-import Restaurant from "../models/restaurant.model";
-import Review from "../models/review.model";
+import * as reviewService from "../services/reviewService";
 
-export const getReview = async (req: Request, res: Response) => {
+export const getAllReviewsForRestaurant = async (
+  req: Request,
+  res: Response
+) => {
+  const { restaurantId } = req.params;
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+
   try {
-    const id = req.params.id
-    const result = await Review.findByPk(id)
+    const result = await reviewService.getAllReviewsForRestaurant(
+      restaurantId,
+      page,
+      limit
+    );
 
     res.status(200).json({
       status: "success",
-      data: {
-        review: result
-      }
-    })
-  } catch (error) {
-    console.error("getAllReviews error: ", error);
-    res.status(404).json({
-      status: "error",
-      data: {
-        error: error,
+      data: result.reviews,
+      pagination: {
+        currentPage: page,
+        totalPages: result.totalPages,
+        totalReviews: result.totalReviews,
+        hasNextPage: page < result.totalPages,
       },
     });
-  }
-}
-
-export const getAllReviews = async (req: Request, res: Response) => {
-  try {
-    const result = Review.findAll()
-    res.status(200).json({
-      status: "success",
-      data: {
-        reviews: result
-      }
-    })
   } catch (error) {
-    console.error("getAllReviews error: ", error);
-    res.status(404).json({
-      status: "error",
-      data: {
-        error: error,
-      },
-    });
-  }
-}
-
-export const addReview = async (req: Request, res: Response) => {
-  try {
-    const restaurant = await Restaurant.findByPk(req.params.id)
-    if (!restaurant) {
-      return res.status(404).json({
-        status: "error",
-        data: {
-          error: "Restaurant not found!",
-        },
-      })
-    }
-
-    const newReview = await Review.create({
-      restaurantId: Number(req.params.id),
-      name: req.body.name,
-      review: req.body.review,
-      rating: req.body.rating,
-    })
-
-    res.status(201).json({
-      status: "Success",
-      data: {
-        review: newReview.dataValues
-      }
-    }
-    )
-  } catch (err) {
-    console.error(err);
     res.status(500).json({
       status: "error",
-      data: {
-        error: err,
-      },
+      message: "An error occurred while fetching reviews.",
     });
   }
-}
-
-export const editReview = async (req: Request, res: Response) => {
-  const id = req.params.id
-  const name: string = req.body.name
-  const review: string = req.body.review
-  const rating: number = Number(req.body.rating)
-
-  try {
-    const result = await Review.update({
-      name: name,
-      review: review,
-      rating: rating
-    },
-      { where: { id: id } })
-
-    res.status(200).json({
-      status: "success",
-      data: {
-        review: result[0]
-      }
-    })
-  } catch (error) {
-    console.error(error);
-    res.status(404).json({
-      status: "error",
-      data: {
-        error: error,
-      },
-    });
-  }
-}
-
-export const deleteReview = async (req: Request, res: Response) => {
-  const id: string = req.params.id;
-  try {
-    await Review.destroy({ where: { id: id } })
-    res.status(200).json({
-      status: "success",
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(404).json({
-      status: "error",
-      data: {
-        error: error,
-      },
-    });
-  }
-}
+};

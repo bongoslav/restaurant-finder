@@ -4,7 +4,7 @@ import morgan from "morgan";
 import cors from "cors";
 import restaurantRoutes from "./routes/restaurants";
 import reviewRoutes from "./routes/reviews";
-import authRoutes from "./routes/auth";
+// import authRoutes from "./routes/auth";
 import multer from "multer";
 import cookieParser from "cookie-parser";
 
@@ -20,7 +20,7 @@ if (process.env.NODE_ENV !== "test") {
 
 // routes
 app.use("/api/v1", restaurantRoutes);
-// app.use(reviewRoutes);
+app.use("/api/v1/restaurants", reviewRoutes)
 // app.use(authRoutes);
 
 // error handling middleware

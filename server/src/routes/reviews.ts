@@ -1,18 +1,13 @@
 import express from "express";
-import {
-  addReview,
-  deleteReview,
-  editReview,
-  getAllReviews,
-  getReview
-} from "../controllers/reviews";
+import { getAllReviewsForRestaurant } from "../controllers/reviews";
 
-const router = express()
+const router = express();
 
-router.get("/api/v1/reviews", getAllReviews);
-router.get("/api/v1/reviews/:id", getReview)
-router.post("/api/v1/restaurants/:id/add-review", addReview);
-router.patch("/api/v1/reviews/:id", editReview)
-router.delete("/api/v1/reviews/:id", deleteReview)
+router.get("/:restaurantId/reviews", getAllReviewsForRestaurant);
+// router.post("/:restaurantId/reviews", addReview);
+// router.get("/:restaurantId/reviews/:reviewId", getReviewForRestaurant);
+// router.put("/:restaurantId/reviews/:reviewId", updateReview);
+// router.delete("/:restaurantId/reviews/:id", deleteReview);
+// router.post("/:restaurantId/reviews/:reviewId/helpful", markReviewAsHelpful);
 
-export default router
+export default router;
