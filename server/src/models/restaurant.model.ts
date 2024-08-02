@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const reviewSchema = new mongoose.Schema(
   {
     title: String,
-    authorId: mongoose.Schema.ObjectId,
+    userId: mongoose.Schema.ObjectId,
     rating: Number,
     text: String,
   },

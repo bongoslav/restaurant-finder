@@ -147,7 +147,6 @@ export const createRestaurant = async (
     reviews: [],
   });
 
-  // what if here is an error?
   try {
     await newRestaurant.save();
   } catch (error) {
@@ -155,6 +154,7 @@ export const createRestaurant = async (
     throw new Error("Failed to create restaurant");
   }
 
+  // because of `reviewCount` and `averageRating`
   const restaurantResponse: AggregatedRestaurant = {
     _id: newRestaurant._id,
     name: newRestaurant.name,
