@@ -48,7 +48,7 @@ export const addReview = async (req: Request, res: Response) => {
   try {
     const { restaurantId } = req.params;
     // TODO after auth update
-    const userId = "66aabdb36b70547533a0e605";
+    const userId = new Types.ObjectId("66aabdb36b70547533a0e605");
     const { title, rating, text } = req.body;
 
     const restaurant = await reviewService.addReview(

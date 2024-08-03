@@ -35,7 +35,7 @@ export const getAllReviewsForRestaurant = async (
 export const addReview = async (
   restaurantId: string,
   title: string,
-  userId: string,
+  userId: Types.ObjectId,
   rating: number,
   text: string
 ) => {
