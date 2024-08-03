@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import * as reviewService from "../services/reviewService";
 import { Types } from "mongoose";
+import { AuthRequest } from "../types/AuthRequest";
 
 export const getAllReviewsForRestaurant = async (
   req: Request,
@@ -44,11 +45,10 @@ export const getAllReviewsForRestaurant = async (
   }
 };
 
-export const addReview = async (req: Request, res: Response) => {
+export const addReview = async (req: AuthRequest, res: Response) => {
   try {
     const { restaurantId } = req.params;
-    // TODO after auth update
-    const userId = new Types.ObjectId("66aabdb36b70547533a0e605");
+    const userId = new Types.ObjectId(req.user.userId);
     const { title, rating, text } = req.body;
 
     const restaurant = await reviewService.addReview(

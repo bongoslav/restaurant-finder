@@ -5,13 +5,17 @@ import {
   getAllReviewsForRestaurant,
   getReviewForRestaurant,
 } from "../controllers/reviews";
+import { isLoggedIn } from "../middlewares/auth";
 
 const router = express();
 
 router.get("/:restaurantId/reviews", getAllReviewsForRestaurant);
-router.post("/:restaurantId/reviews", addReview);
-router.get("/:restaurantId/reviews/:reviewId", getReviewForRestaurant);
-router.delete("/:restaurantId/reviews/:reviewId", deleteReview);
-// router.post("/:reviewId/helpful", markReviewAsHelpful);
+router.post("/:restaurantId/reviews", isLoggedIn, addReview);
+router.get(
+  "/:restaurantId/reviews/:reviewId",
+  isLoggedIn,
+  getReviewForRestaurant
+);
+router.delete("/:restaurantId/reviews/:reviewId", isLoggedIn, deleteReview);
 
 export default router;

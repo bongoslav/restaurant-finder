@@ -26,8 +26,11 @@ const reviewSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    // TODO: `ref: User` after auth is ready
-    userId: { type: mongoose.Schema.ObjectId, required: true },
+    userId: {
+      type: mongoose.Schema.ObjectId,
+      ref: "User",
+      required: true,
+    },
     rating: {
       type: Number,
       required: true,
