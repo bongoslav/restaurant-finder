@@ -6,16 +6,15 @@ import {
   updateRestaurant,
   deleteRestaurant,
 } from "../controllers/restaurants";
-// import uploadRestaurantPhoto from "../middlewares/uploadRestaurantPhoto";
-// import { isLoggedIn } from "../middlewares/loggedIn";
-// import { isOwner } from "../middlewares/owner";
+import { isLoggedIn } from "../middlewares/auth";
+import { isOwner } from "../middlewares/owner";
 
 const router = express();
 
-router.get("/", getAllRestaurants);
+router.get("/", isLoggedIn, getAllRestaurants);
 router.get("/:id", getRestaurantById);
-router.post("/", createRestaurant);
-router.put("/:id", updateRestaurant);
-router.delete("/:id", deleteRestaurant);
+router.post("/", isLoggedIn, createRestaurant);
+router.put("/:id", isLoggedIn, isOwner, updateRestaurant);
+router.delete("/:id", isLoggedIn, isOwner, deleteRestaurant);
 
 export default router;

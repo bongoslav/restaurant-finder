@@ -16,6 +16,7 @@ interface IRestaurant {
   images: string[];
   hours: string[];
   cuisine: string;
+  ownerId: Types.ObjectId;
   reviews: IReview[];
 }
 
@@ -80,6 +81,11 @@ const restaurantSchema = new mongoose.Schema(
     hours: {
       type: [String],
       trim: true,
+    },
+    ownerId: {
+      type: mongoose.Schema.ObjectId,
+      ref: "User",
+      required: true,
     },
     cuisine: {
       type: String,

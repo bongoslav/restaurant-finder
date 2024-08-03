@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { v2 as cloudinary } from "cloudinary";
 import * as restaurantService from "../services/restaurantService";
+import { AuthRequest } from "../types/AuthRequest";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -98,15 +99,17 @@ export const getRestaurantById = async (req: Request, res: Response) => {
   }
 };
 
-export const createRestaurant = async (req: Request, res: Response) => {
+export const createRestaurant = async (req: AuthRequest, res: Response) => {
   try {
     const { name, location, priceRange, cuisine } = req.body;
+    const userId = req.user.userId;
 
     const result = await restaurantService.createRestaurant(
       name,
       location,
       priceRange,
-      cuisine
+      cuisine,
+      userId
     );
 
     res.status(201).json({
@@ -130,7 +133,7 @@ export const createRestaurant = async (req: Request, res: Response) => {
   }
 };
 
-export const updateRestaurant = async (req: Request, res: Response) => {
+export const updateRestaurant = async (req: AuthRequest, res: Response) => {
   try {
     const id = req.params.id;
     const body: restaurantService.UpdateRestaurantBody = req.body;
@@ -159,7 +162,7 @@ export const updateRestaurant = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteRestaurant = async (req: Request, res: Response) => {
+export const deleteRestaurant = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
 

@@ -18,6 +18,7 @@ interface AggregatedRestaurant {
   location: string;
   priceRange: number;
   cuisine: string;
+  ownerId: Types.ObjectId;
   images: string[];
   reviewCount: number;
   averageRating: number;
@@ -62,6 +63,7 @@ export const getAllRestaurants = async (options: GetAllRestaurantsOptions) => {
         location: 1,
         priceRange: 1,
         cuisine: 1,
+        ownerId: 1,
         images: 1,
         reviewCount: 1,
         averageRating: { $round: ["$averageRating", 1] },
@@ -112,6 +114,7 @@ export const getRestaurantById = async (id: string) => {
         location: 1,
         priceRange: 1,
         cuisine: 1,
+        ownerId: 1,
         images: 1,
         reviewCount: 1,
         averageRating: { $round: ["$averageRating", 1] },
@@ -132,17 +135,21 @@ export const createRestaurant = async (
   name: string,
   location: string,
   priceRange: number,
-  cuisine: string
+  cuisine: string,
+  userId: string
 ) => {
   if (!name || !location || !priceRange || !cuisine) {
     throw new Error("Missing required fields");
   }
+
+  const objectUserId = new Types.ObjectId(userId);
 
   const newRestaurant = new Restaurant({
     name,
     location,
     priceRange,
     cuisine,
+    ownerId: objectUserId,
     images: [],
     reviews: [],
   });
@@ -162,6 +169,7 @@ export const createRestaurant = async (
     priceRange: newRestaurant.priceRange,
     cuisine: newRestaurant.cuisine,
     images: newRestaurant.images,
+    ownerId: newRestaurant.ownerId,
     reviewCount: 0,
     averageRating: 0,
   };
