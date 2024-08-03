@@ -1,6 +1,3 @@
-// import Restaurant from "../models/restaurant.model";
-// import Review from "../models/review.model";
-// import { RestaurantWithReviewStats } from "../util/types";
 import { Request, Response } from "express";
 import { v2 as cloudinary } from "cloudinary";
 import * as restaurantService from "../services/restaurantService";

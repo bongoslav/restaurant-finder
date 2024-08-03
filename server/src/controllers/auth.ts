@@ -1,119 +1,262 @@
 import { Request, Response } from "express";
-import bcrypt from "bcrypt"
-import User from "../models/user.model";
-import { JwtPayload } from "jsonwebtoken"
-import dotenv from "dotenv";
-import { AuthenticatedRequest } from "../types";
-import { verify } from "jsonwebtoken";
-import { createAccessToken, createRefreshToken, sendRefreshToken } from "../util/auth/tokens";
-dotenv.config();
+import * as authService from "../services/authService";
+import * as tokenService from "../services/tokenService";
+import { AuthRequest } from "../types/AuthRequest";
+import { ObjectId } from "mongodb";
 
-export const getUsers = async (req: Request, res: Response) => {
+export const getCurrentUser = async (req: AuthRequest, res: Response) => {
   try {
-    const users = await User.findAll()
-    return res.json({
-      users: users
-    })
-  } catch (err) {
-    return res.status(400).json({ err })
+    const user = await authService.getCurrentUser(req.user.userId);
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Error fetching user data" });
   }
-}
+};
 
-export const login = async (req: Request, res: Response) => {
-  const email: string = req.body.email
-  const password: string = req.body.password
-
-  // TODO: validation
-
+export const registerUser = async (req: Request, res: Response) => {
   try {
-    const user = await User.findOne({ where: { email } })
-    const match = await bcrypt.compare(password, user.password)
-    if (!match) {
-      return res.status(401).json({ message: "Wrong password." })
+    const { email, password, username, name } = req.body;
+
+    const newUser = await authService.registerUser({
+      email,
+      password,
+      username,
+      name,
+    });
+
+    res.status(201).json({
+      status: "success",
+      data: newUser,
+    });
+  } catch (error) {
+    console.error("Error in register user:", error);
+    res.status(500).json({
+      status: "error",
+      message: "An error occurred while registering a user",
+    });
+  }
+};
+
+export const loginUser = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        status: "error",
+        message: "Email and password are required",
+      });
     }
 
-    sendRefreshToken(res, createRefreshToken(user));
+    const user = await authService.findByCredentials(email, password);
+    const { accessToken, refreshToken } = await tokenService.generateTokens(
+      user._id
+    );
 
-    return res.status(200).json({ accessToken: createAccessToken(user) })
-  } catch (err) {
-    return res.status(404).json({ message: "User not found." })
-  }
-}
-
-export const register = async (req: Request, res: Response) => {
-  const email: string = req.body.email
-  const username: string = req.body.username
-  const name: string = req.body.name
-  const password: string = req.body.password
-  // TODO: validation
-
-  try {
-    const saltRounds = 10;
-    const salt = await bcrypt.genSalt(saltRounds);
-    const hash = await bcrypt.hash(password, salt);
-
-    await User.create({ email, username, name, password: hash });
-
-    return res.status(201).json({
-      message: "User registered successfully",
+    // set refresh token as an HTTP-only cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
-  } catch (err) {
-    console.error("Registration error:", err); // Log the specific error for debugging purposes
-    return res.status(500).json({ message: "Something went wrong while registering." });
-  }
-}
 
-export const getCurrentUser = async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const user = await User.findOne({ where: { id: req.userData.userId } })
-    return res.status(200).json({ user })
-  } catch (err) {
-    return res.status(404).json({ message: "User not found" })
+    res.status(200).json({
+      status: "success",
+      data: {
+        user: {
+          id: user._id,
+          email: user.email,
+          username: user.username,
+        },
+        accessToken,
+      },
+    });
+  } catch (error) {
+    console.error("Error in login:", error.message);
+
+    res.status(400).json({
+      status: "error",
+      message: "Invalid login credentials",
+    });
   }
-}
+};
+
+export const logoutUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(400).json({
+        status: "error",
+        message: "No refresh token provided",
+      });
+    }
+
+    const objectUserId = new ObjectId(req.user.userId);
+    await tokenService.revokeRefreshToken(objectUserId, refreshToken);
+
+    res.clearCookie("refreshToken");
+
+    res.status(200).json({
+      status: "success",
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    console.error("Error in logoutUser:", error.message);
+    res.status(500).json({
+      status: "error",
+      message: "An error occurred during logout",
+    });
+  }
+};
+
+export const getUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await authService.getUserById(userId);
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          name: user.name,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error in getUser:", error.message);
+
+    if (error.message === "User not found") {
+      return res.status(404).json({
+        status: "error",
+        message: "User not found",
+      });
+    }
+
+    res.status(500).json({
+      status: "error",
+      message: "An error occurred while fetching user data",
+    });
+  }
+};
+
+export const updateUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const { username, email, password, name } = req.body;
+
+    if (userId !== req.user.userId) {
+      return res.status(403).json({
+        status: "error",
+        message: "You can only update your own user data",
+      });
+    }
+
+    const updatedUser = await authService.updateUser(userId, {
+      username,
+      email,
+      password,
+      name,
+    });
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        user: {
+          id: updatedUser._id,
+          username: updatedUser.username,
+          email: updatedUser.email,
+          name: updatedUser.name,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error in updateUser:", error.message);
+
+    if (error.message.includes("Validation error")) {
+      return res.status(400).json({
+        status: "error",
+        message: error.message,
+      });
+    }
+
+    if (error.message === "User not found") {
+      return res.status(404).json({
+        status: "error",
+        message: "User not found",
+      });
+    }
+
+    if (
+      error.message === "Username is already taken" ||
+      error.message === "Email is already in use"
+    ) {
+      return res.status(409).json({
+        status: "error",
+        message: error.message,
+      });
+    }
+
+    res.status(500).json({
+      status: "error",
+      message: "An error occurred while updating user data",
+    });
+  }
+};
 
 export const refreshToken = async (req: Request, res: Response) => {
-  const token = req.cookies.jid
-  if (!token) {
-    return res.status(404).json({ message: "No refresh token provided", accessToken: "" })
-  }
-
-  let payload: JwtPayload;
   try {
-    payload = verify(token, process.env.JWT_REFRESH_TOKEN_SECRET) as JwtPayload;
-  } catch (err) {
-    return res.status(404).json({ message: "Wrong refresh token", accessToken: "" })
+    const { refreshToken } = req.cookies;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        status: "error",
+        message: "Refresh token is missing",
+      });
+    }
+
+    const result = await tokenService.refreshAccessToken(refreshToken);
+
+    res.cookie("refreshToken", result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        accessToken: result.accessToken,
+      },
+    });
+  } catch (error) {
+    console.error("Error in refreshToken:", error.message);
+
+    if (error.message === "Invalid refresh token") {
+      return res.status(401).json({
+        status: "error",
+        message: "Invalid or expired refresh token",
+      });
+    }
+
+    res.status(500).json({
+      status: "error",
+      message: "An error occurred while refreshing the token",
+    });
   }
-
-  // token is valid and we can send back an access token
-  const user = await User.findOne({ where: { id: payload.userId } });
-
-  if (!user) {
-    return res.status(404).json({ message: "No user found with such id", accessToken: "" })
-  }
-
-  // refresh token has been invalidated
-  if (user.tokenVersion !== payload.tokenVersion) {
-    return res.status(404).json({ message: "Invalid token", accessToken: "" })
-  }
-
-  sendRefreshToken(res, createRefreshToken(user));
-
-  return res.status(200).json({ message: "ok", accessToken: createAccessToken(user) })
-}
-
-export const revokeRefreshToken = async (req: Request, res: Response) => {
-  const token = req.cookies.jid
-  let payload: JwtPayload;
-
-  try {
-    payload = verify(token, process.env.JWT_REFRESH_TOKEN_SECRET) as JwtPayload;
-  } catch (err) {
-    return res.status(404).json({ message: "Wrong refresh token", accessToken: "" })
-  }
-
-  const user = await User.findOne({ where: { id: payload.userId } });
-  user.tokenVersion += 1;
-  await user.save();
-  return res.status(200).json({ message: "ok" })
-}
+};

@@ -1,64 +1,72 @@
-import {
-  Column,
-  DataType,
-  Model,
-  Table,
-  HasMany,
-  PrimaryKey,
-  AutoIncrement,
-  AllowNull,
-  Unique,
-  Default,
-} from 'sequelize-typescript';
-import Restaurant from './restaurant.model';
-import Review from './review.model';
+import mongoose, { Types } from "mongoose";
+import bcrypt from "bcrypt";
 
 interface IUser {
-  id: number;
+  _id?: Types.ObjectId;
+  username: string;
   email: string;
   password: string;
-  username: string;
   name: string;
-  restaurants: Restaurant[];
-  reviews: Review[];
-  tokenVersion: number;
-  createdAt?: Date;
-  updatedAt?: Date;
+  // array -> user can stay logged in on many devices
+  // also, adds "log out from all devices" functionality
+  refreshTokens: string[];
 }
 
-@Table({ tableName: 'users' })
-export default class User extends Model<IUser> implements IUser {
-  @AutoIncrement
-  @PrimaryKey
-  @Column
-  id: number;
+const userSchema = new mongoose.Schema<IUser>(
+  {
+    username: {
+      type: String,
+      required: true,
+      trim: true,
+      unique: true,
+      validate: {
+        validator: function (v: string) {
+          // ensures the username is a single word
+          // allows letters, numbers, underscores, and hyphens
+          return /^[a-zA-Z0-9_-]+$/.test(v);
+        },
+        message: (props) =>
+          `${props.value} is not a valid username. Username must be a single word without spaces.`,
+      },
+    },
+    email: {
+      type: String,
+      required: true,
+      trim: true,
+      unique: true,
+      lowercase: true,
+      validate: {
+        validator: function (v: string) {
+          return /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v);
+        },
+        message: "Please enter a valid email",
+      },
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: 8,
+      trim: true,
+    },
+    name: {
+      type: String,
+      default: "First Last",
+      trim: true,
+    },
+    refreshTokens: [{ type: [String] }],
+  },
+  { timestamps: true }
+);
 
-  @Unique
-  @AllowNull(false)
-  @Column(DataType.STRING)
-  email: string;
+userSchema.pre("save", async function (next) {
+  // eslint-disable-next-line @typescript-eslint/no-this-alias
+  const user = this;
+  if (user.isModified("password")) {
+    user.password = await bcrypt.hash(user.password, 8);
+  }
+  next();
+});
 
-  @AllowNull(false)
-  @Column(DataType.TEXT)
-  password: string
+const User = mongoose.model<IUser>("User", userSchema);
 
-  @Unique
-  @AllowNull(false)
-  @Column(DataType.STRING(20))
-  username: string
-
-  @AllowNull(false)
-  @Column(DataType.STRING(50))
-  name: string;
-
-  @AllowNull(true)
-  @Default(0)
-  @Column(DataType.NUMBER)
-  tokenVersion: number;
-
-  @HasMany(() => Restaurant, { foreignKey: "ownerId" })
-  restaurants: Restaurant[]
-
-  @HasMany(() => Review, { foreignKey: "authorId" })
-  reviews: Review[]
-}
+export default User;

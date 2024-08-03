@@ -1,14 +1,24 @@
-import express from "express"
-import { getCurrentUser, getUsers, login, refreshToken, register, revokeRefreshToken } from "../controllers/auth";
-import { isLoggedIn } from "../middlewares/loggedIn";
+import express from "express";
+import {
+  getCurrentUser,
+  getUser,
+  loginUser,
+  logoutUser,
+  refreshToken,
+  registerUser,
+  updateUser,
+} from "../controllers/auth";
+import { isLoggedIn } from "../middlewares/auth";
 
 const router = express();
 
-router.get("/api/v1/users", isLoggedIn, getUsers);
-router.get("/api/v1/me", isLoggedIn, getCurrentUser);
-router.post("/api/v1/login", login);
-router.post("/api/v1/register", register);
-router.post("/api/v1/refresh-token", refreshToken)
-router.post("/api/v1/revoke", isLoggedIn, revokeRefreshToken)
+router.get("/me", isLoggedIn, getCurrentUser);
+router.post("/register", registerUser);
+router.post("/login", loginUser);
+router.post("/logout", isLoggedIn, logoutUser);
+router.post("/refresh-token", refreshToken);
+
+router.get("/users/:userId", isLoggedIn, getUser);
+router.put("/users/:userId", isLoggedIn, updateUser);
 
 export default router;
