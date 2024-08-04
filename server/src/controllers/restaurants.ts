@@ -101,7 +101,7 @@ export const getRestaurantById = async (req: Request, res: Response) => {
 
 export const createRestaurant = async (req: AuthRequest, res: Response) => {
   try {
-    const { name, location, priceRange, cuisine } = req.body;
+    const { name, location, priceRange, cuisine, hours } = req.body;
     const userId = req.user.userId;
 
     const result = await restaurantService.createRestaurant(
@@ -109,7 +109,8 @@ export const createRestaurant = async (req: AuthRequest, res: Response) => {
       location,
       priceRange,
       cuisine,
-      userId
+      userId,
+      hours
     );
 
     res.status(201).json({

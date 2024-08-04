@@ -20,6 +20,7 @@ interface AggregatedRestaurant {
   cuisine: string;
   ownerId: Types.ObjectId;
   images: string[];
+  hours: string[];
   reviewCount: number;
   averageRating: number;
 }
@@ -29,6 +30,7 @@ export interface UpdateRestaurantBody {
   location?: string;
   priceRange?: number;
   cuisine?: string;
+  hours?: string[];
 }
 
 export const getAllRestaurants = async (options: GetAllRestaurantsOptions) => {
@@ -136,7 +138,8 @@ export const createRestaurant = async (
   location: string,
   priceRange: number,
   cuisine: string,
-  userId: string
+  userId: string,
+  hours: string[]
 ) => {
   if (!name || !location || !priceRange || !cuisine) {
     throw new Error("Missing required fields");
@@ -151,6 +154,7 @@ export const createRestaurant = async (
     cuisine,
     ownerId: objectUserId,
     images: [],
+    hours: hours,
     reviews: [],
   });
 
@@ -170,6 +174,7 @@ export const createRestaurant = async (
     cuisine: newRestaurant.cuisine,
     images: newRestaurant.images,
     ownerId: newRestaurant.ownerId,
+    hours: newRestaurant.hours,
     reviewCount: 0,
     averageRating: 0,
   };
@@ -187,6 +192,7 @@ export const updateRestaurant = async (
   if (body.location !== undefined) updateFields.location = body.location;
   if (body.priceRange !== undefined) updateFields.priceRange = body.priceRange;
   if (body.cuisine !== undefined) updateFields.cuisine = body.cuisine;
+  if (body.hours !== undefined) updateFields.hours = body.hours;
 
   try {
     const updatedRestaurant = await Restaurant.findByIdAndUpdate(
