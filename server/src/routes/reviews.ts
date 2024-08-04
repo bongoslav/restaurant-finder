@@ -6,6 +6,7 @@ import {
   getReviewForRestaurant,
 } from "../controllers/reviews";
 import { isLoggedIn } from "../middlewares/auth";
+import { isReviewAuthor } from "../middlewares/isReviewAuthor";
 
 const router = express();
 
@@ -16,6 +17,11 @@ router.get(
   isLoggedIn,
   getReviewForRestaurant
 );
-router.delete("/:restaurantId/reviews/:reviewId", isLoggedIn, deleteReview);
+router.delete(
+  "/:restaurantId/reviews/:reviewId",
+  isLoggedIn,
+  isReviewAuthor,
+  deleteReview
+);
 
 export default router;
