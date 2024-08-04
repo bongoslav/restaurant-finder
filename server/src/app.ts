@@ -1,12 +1,12 @@
 import "dotenv/config";
-import express, { NextFunction } from "express";
+import express from "express";
 import morgan from "morgan";
 import cors from "cors";
 import restaurantRoutes from "./routes/restaurants";
 import reviewRoutes from "./routes/reviews";
 import authRoutes from "./routes/auth";
-import multer from "multer";
 import cookieParser from "cookie-parser";
+import { errorHandler } from "./utils/errorHandler";
 
 const app = express();
 
@@ -24,29 +24,6 @@ app.use("/api/v1/restaurants", reviewRoutes);
 app.use("/api/v1/auth", authRoutes);
 
 // error handling middleware
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-app.use((err: Error, req, res, next: NextFunction) => {
-  if (err instanceof multer.MulterError) {
-    if (err.code === "LIMIT_FILE_SIZE") {
-      return res.status(413).json({
-        err_code: err.code,
-        err_message: `File size limit of ${process.env.MAX_PHOTO_SIZE.slice(
-          0,
-          1
-        )}mb exceeded`,
-      });
-    } else {
-      return res.status(400).json({
-        err_code: err.code,
-        err_message: err.message,
-      });
-    }
-  } else {
-    return res.status(500).json({
-      err_code: "",
-      message: "Something went wrong!",
-    });
-  }
-});
+app.use(errorHandler);
 
 export default app;

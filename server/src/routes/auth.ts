@@ -9,12 +9,14 @@ import {
   updateUser,
 } from "../controllers/auth";
 import { isLoggedIn } from "../middlewares/auth";
+import { validateRequest } from "../middlewares/validateRequest";
+import { loginUserSchema, registerUserSchema } from "../validations/schemas";
 
 const router = express();
 
 router.get("/me", isLoggedIn, getCurrentUser);
-router.post("/register", registerUser);
-router.post("/login", loginUser);
+router.post("/register", validateRequest(registerUserSchema), registerUser);
+router.post("/login", validateRequest(loginUserSchema), loginUser);
 router.post("/logout", isLoggedIn, logoutUser);
 router.post("/refresh-token", refreshToken);
 

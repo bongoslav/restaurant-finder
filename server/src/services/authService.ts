@@ -2,6 +2,7 @@ import { ObjectId } from "mongodb";
 import User from "../models/user.model";
 import bcrypt from "bcrypt";
 import Joi from "joi";
+import { AppError, handleJoiValidationError } from "../utils/errorHandler";
 
 interface RegisterUserData {
   email: string;
@@ -35,7 +36,7 @@ export const getCurrentUser = async (userId: string) => {
 
   const user = await User.findById(objectUserId);
   if (!user) {
-    throw new Error("User not found");
+    throw new AppError(404, "User not found");
   }
   return user;
 };
@@ -43,7 +44,7 @@ export const getCurrentUser = async (userId: string) => {
 export const registerUser = async (userData: RegisterUserData) => {
   const { error, value } = registerUserSchema.validate(userData);
   if (error) {
-    throw new Error(`Validation error: ${error.details[0].message}`);
+    throw handleJoiValidationError(error);
   }
 
   const { email, password, username, name } = value;
@@ -51,9 +52,9 @@ export const registerUser = async (userData: RegisterUserData) => {
   const existingUser = await User.findOne({ $or: [{ email }, { username }] });
   if (existingUser) {
     if (existingUser.email === email) {
-      throw new Error("Email already in use");
+      throw new AppError(409, "Email already taken");
     } else {
-      throw new Error("Username already taken");
+      throw new AppError(409, "Username already taken");
     }
   }
 
@@ -71,9 +72,9 @@ export const registerUser = async (userData: RegisterUserData) => {
   } catch (error) {
     console.error("Error registering user", error);
     if (error.name === "ValidationError") {
-      throw new Error(`Validation error: ${error.message}`);
+      handleJoiValidationError(error);
     }
-    throw new Error("Failed to register user");
+    throw new AppError(500, "Failed to register user");
   }
 
   const userObject = newUser.toObject();
@@ -84,12 +85,12 @@ export const registerUser = async (userData: RegisterUserData) => {
 export const findByCredentials = async (email: string, password: string) => {
   const user = await User.findOne({ email });
   if (!user) {
-    throw new Error("Invalid login credentials");
+    throw new AppError(400, "Invalid login credentials");
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
-    throw new Error("Invalid login credentials");
+    throw new AppError(400, "Invalid login credentials");
   }
 
   return user;
@@ -98,7 +99,7 @@ export const findByCredentials = async (email: string, password: string) => {
 export const deleteUser = async (userId: string) => {
   const user = await User.findByIdAndDelete(userId);
   if (!user) {
-    throw new Error("User not found");
+    throw new AppError(404, "User not found");
   }
   return user;
 };
@@ -106,7 +107,7 @@ export const deleteUser = async (userId: string) => {
 export const getUserById = async (userId: string) => {
   const user = await User.findById(userId);
   if (!user) {
-    throw new Error("User not found");
+    throw new AppError(404, "User not found");
   }
   return user;
 };
@@ -119,18 +120,18 @@ export const updateUser = async (
 
   const { error, value } = updateUserSchema.validate(updateData);
   if (error) {
-    throw new Error(`Validation error: ${error.details[0].message}`);
+    handleJoiValidationError(error)
   }
 
   const user = await User.findById(objectUserId);
   if (!user) {
-    throw new Error("User not found");
+    throw new AppError(404, "User not found");
   }
 
   if (value.username) {
     const existingUser = await User.findOne({ username: value.username });
     if (existingUser && existingUser._id !== objectUserId) {
-      throw new Error("Username is already taken");
+      throw new AppError(409, "Username is already taken");
     }
     user.username = value.username;
   }
@@ -138,7 +139,7 @@ export const updateUser = async (
   if (value.email) {
     const existingUser = await User.findOne({ email: value.email });
     if (existingUser && existingUser._id !== objectUserId) {
-      throw new Error("Email is already in use");
+      throw new AppError(409, "Email is already in use");
     }
     user.email = value.email;
   }

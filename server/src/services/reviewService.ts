@@ -1,3 +1,4 @@
+import { AppError } from "../utils/errorHandler";
 import Restaurant from "../models/restaurant.model";
 import { Types } from "mongoose";
 
@@ -5,7 +6,7 @@ const checkForRestaurant = async (restaurantId: string) => {
   const restaurant = await Restaurant.findById(restaurantId);
 
   if (!restaurant) {
-    throw new Error("Restaurant not found");
+    throw new AppError(404, "Restaurant not found");
   }
 
   return restaurant;
@@ -41,20 +42,12 @@ export const addReview = async (
 ) => {
   const restaurant = await checkForRestaurant(restaurantId);
 
-  if (!rating || !title || !text || !userId) {
-    throw new Error("Invalid data");
-  }
-
-  if (rating < 1 || rating > 5) {
-    throw new Error("Invalid data");
-  }
-
   try {
     restaurant.reviews.push({ title, userId, rating, text });
     await restaurant.save();
   } catch (error) {
     console.error("Error in adding review:", error.message);
-    throw new Error("Failed to add review");
+    throw new AppError(500, "Failed to add review");
   }
 
   return restaurant;
@@ -71,7 +64,7 @@ export const getReviewForRestaurant = async (
   );
 
   if (!review) {
-    throw new Error("Review not found")
+    throw new AppError(404, "Review not found");
   }
 
   return review;
@@ -81,16 +74,13 @@ export const deleteReview = async (
   restaurantId: string,
   reviewId: Types.ObjectId
 ) => {
-  const result = await Restaurant.updateOne(
-    { _id: restaurantId },
-    { $pull: { reviews: { _id: reviewId } } }
-  );
-
-  if (result.matchedCount === 0) {
-    throw new Error("Restaurant not found");
-  }
-
-  if (result.modifiedCount === 0) {
-    throw new Error("Review not found");
+  try {
+    await Restaurant.updateOne(
+      { _id: restaurantId },
+      { $pull: { reviews: { _id: reviewId } } }
+    );
+  } catch (error) {
+    console.error("Error in deleting review:", error.message);
+    throw new AppError(500, "Failed to delete review");
   }
 };

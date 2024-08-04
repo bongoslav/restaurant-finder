@@ -5,6 +5,7 @@ import {
   verifyRefreshToken,
 } from "../config/jwt";
 import { Types } from "mongoose";
+import { AppError } from "../utils/errorHandler";
 
 export const generateTokens = async (userId: Types.ObjectId) => {
   const accessToken = generateAccessToken(userId);
@@ -12,7 +13,7 @@ export const generateTokens = async (userId: Types.ObjectId) => {
 
   const user = await User.findById(userId);
   if (!user) {
-    throw new Error("User not found");
+    throw new AppError(404, "User not found");
   }
 
   user.refreshTokens.push(refreshToken);
@@ -24,16 +25,16 @@ export const generateTokens = async (userId: Types.ObjectId) => {
 export const refreshAccessToken = async (refreshToken: string) => {
   const decoded = verifyRefreshToken(refreshToken);
   if (!decoded || !decoded.userId) {
-    throw new Error("Invalid refresh token");
+    throw new AppError(401, "Invalid refresh token");
   }
 
   const user = await User.findById(decoded.userId);
   if (!user) {
-    throw new Error("Invalid refresh token");
+    throw new AppError(401, "Invalid refresh token");
   }
 
   if (!user.refreshTokens.includes(refreshToken)) {
-    throw new Error("Invalid refresh token");
+    throw new AppError(401, "Invalid refresh token");
   }
 
   const accessToken = generateAccessToken(user._id);

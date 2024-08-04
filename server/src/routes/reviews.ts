@@ -7,11 +7,18 @@ import {
 } from "../controllers/reviews";
 import { isLoggedIn } from "../middlewares/auth";
 import { isReviewAuthor } from "../middlewares/isReviewAuthor";
+import { validateRequest } from "../middlewares/validateRequest";
+import { addReviewSchema } from "../validations/schemas";
 
 const router = express();
 
 router.get("/:restaurantId/reviews", getAllReviewsForRestaurant);
-router.post("/:restaurantId/reviews", isLoggedIn, addReview);
+router.post(
+  "/:restaurantId/reviews",
+  isLoggedIn,
+  validateRequest(addReviewSchema),
+  addReview
+);
 router.get(
   "/:restaurantId/reviews/:reviewId",
   isLoggedIn,

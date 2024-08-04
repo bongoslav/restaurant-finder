@@ -3,6 +3,7 @@ import User from "../models/user.model";
 import Restaurant from "../models/restaurant.model";
 import { AuthRequest } from "../types/AuthRequest";
 import { ObjectId } from "mongodb";
+import { AppError } from "../utils/errorHandler";
 
 export const isRestaurantOwner = async (
   req: AuthRequest,
@@ -12,27 +13,18 @@ export const isRestaurantOwner = async (
   const objectUserId = new ObjectId(req.user.userId);
   const restaurant = await Restaurant.findById(req.params.id);
   if (!restaurant) {
-    return res.status(400).json({
-      status: "error",
-      message: "Restaurant not found",
-    });
+    throw new AppError(404, "Restaurant not found");
   }
 
   const user = await User.findById(objectUserId);
   if (!user) {
-    return res.status(500).json({
-      status: "error",
-      message: "User not found",
-    });
+    throw new AppError(404, "User not found");
   }
 
   const ownerId = restaurant.ownerId;
 
   if (!ownerId.equals(objectUserId)) {
-    return res.status(401).json({
-      status: "error",
-      message: "Logged in user is not restaurant's owner",
-    });
+    throw new AppError(401, "Logged in user is not restaurant's owner");
   }
 
   next();

@@ -1,6 +1,7 @@
 import { FilterQuery, Types, PipelineStage } from "mongoose";
 import Restaurant from "../models/restaurant.model";
 import IRestaurant from "../types/Restaurant";
+import { AppError } from "../utils/errorHandler";
 
 interface GetAllRestaurantsOptions {
   page: number;
@@ -93,7 +94,7 @@ export const getAllRestaurants = async (options: GetAllRestaurantsOptions) => {
 
 export const getRestaurantById = async (id: string) => {
   if (!Types.ObjectId.isValid(id)) {
-    throw new Error("Invalid restaurant ID");
+    throw new AppError(400, "Invalid restaurant ID");
   }
 
   const aggregationPipeline: PipelineStage[] = [
@@ -127,7 +128,7 @@ export const getRestaurantById = async (id: string) => {
   const restaurant = await Restaurant.aggregate(aggregationPipeline);
 
   if (restaurant.length === 0) {
-    throw new Error("Restaurant not found");
+    throw new AppError(404, "Restaurant not found");
   }
 
   return restaurant;
@@ -141,10 +142,6 @@ export const createRestaurant = async (
   userId: string,
   hours: string[]
 ) => {
-  if (!name || !location || !priceRange || !cuisine) {
-    throw new Error("Missing required fields");
-  }
-
   const objectUserId = new Types.ObjectId(userId);
 
   const newRestaurant = new Restaurant({
@@ -162,7 +159,7 @@ export const createRestaurant = async (
     await newRestaurant.save();
   } catch (error) {
     console.error("Error saving restaurant:", error);
-    throw new Error("Failed to create restaurant");
+    throw new AppError(500, "Failed to create restaurant");
   }
 
   // because of `reviewCount` and `averageRating`
@@ -206,35 +203,23 @@ export const updateRestaurant = async (
       }
     );
 
-    if (!updatedRestaurant) {
-      return null;
-    }
-
     return {
       _id: updatedRestaurant._id,
       ...updateFields,
     };
   } catch (error) {
     console.error("Error updating restaurant:", error);
-    throw new Error("Failed to update restaurant");
+    throw new AppError(500, "Failed to update restaurant");
   }
 };
 
-export const deleteRestaurant = async (id: string): Promise<boolean> => {
+export const deleteRestaurant = async (id: string) => {
   try {
-    if (!Types.ObjectId.isValid(id)) {
-      throw new Error("Invalid restaurant ID");
-    }
-
-    const result = await Restaurant.findByIdAndDelete(id);
-
-    if (!result) {
-      return false;
-    }
-
-    return true;
+    await Restaurant.findByIdAndDelete(id);
   } catch (error) {
     console.error("Error deleting restaurant:", error);
-    throw new Error("Failed to delete restaurant");
+    throw new AppError(500, "Failed to delete restaurant");
   }
+
+  return;
 };
