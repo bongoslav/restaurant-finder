@@ -4,7 +4,7 @@ import Restaurant from "../models/restaurant.model";
 import { AuthRequest } from "../types/AuthRequest";
 import { ObjectId } from "mongodb";
 
-export const isOwner = async (
+export const isRestaurantOwner = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
