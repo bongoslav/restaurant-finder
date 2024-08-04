@@ -9,6 +9,10 @@ jobs:
     defaults:
       run:
         working-directory: server
+    
+    env:
+      ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+      REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
 
     steps:
       - name: Checkout repository
