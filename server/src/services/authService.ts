@@ -1,7 +1,6 @@
 import { ObjectId } from "mongodb";
 import User from "../models/user.model";
 import bcrypt from "bcrypt";
-import Joi from "joi";
 import { AppError, handleJoiValidationError } from "../utils/errorHandler";
 
 interface RegisterUserData {
@@ -17,19 +16,6 @@ interface UpdateUserData {
   password?: string;
   name?: string;
 }
-const registerUserSchema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().min(8).required(),
-  username: Joi.string().min(3).max(30).required(),
-  name: Joi.string().min(2).max(50),
-});
-
-const updateUserSchema = Joi.object({
-  username: Joi.string().min(3).max(30).optional(),
-  email: Joi.string().email().optional(),
-  password: Joi.string().min(8).optional(),
-  name: Joi.string().min(2).max(50),
-});
 
 export const getCurrentUser = async (userId: string) => {
   const objectUserId = new ObjectId(userId);
@@ -42,12 +28,7 @@ export const getCurrentUser = async (userId: string) => {
 };
 
 export const registerUser = async (userData: RegisterUserData) => {
-  const { error, value } = registerUserSchema.validate(userData);
-  if (error) {
-    throw handleJoiValidationError(error);
-  }
-
-  const { email, password, username, name } = value;
+  const { email, password, username, name } = userData;
 
   const existingUser = await User.findOne({ $or: [{ email }, { username }] });
   if (existingUser) {
@@ -118,39 +99,34 @@ export const updateUser = async (
 ) => {
   const objectUserId = new ObjectId(userId);
 
-  const { error, value } = updateUserSchema.validate(updateData);
-  if (error) {
-    handleJoiValidationError(error)
-  }
-
   const user = await User.findById(objectUserId);
   if (!user) {
     throw new AppError(404, "User not found");
   }
 
-  if (value.username) {
-    const existingUser = await User.findOne({ username: value.username });
+  if (updateData.username) {
+    const existingUser = await User.findOne({ username: updateData.username });
     if (existingUser && existingUser._id !== objectUserId) {
       throw new AppError(409, "Username is already taken");
     }
-    user.username = value.username;
+    user.username = updateData.username;
   }
 
-  if (value.email) {
-    const existingUser = await User.findOne({ email: value.email });
+  if (updateData.email) {
+    const existingUser = await User.findOne({ email: updateData.email });
     if (existingUser && existingUser._id !== objectUserId) {
       throw new AppError(409, "Email is already in use");
     }
-    user.email = value.email;
+    user.email = updateData.email;
   }
 
-  if (value.password) {
+  if (updateData.password) {
     const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(value.password, salt);
+    user.password = await bcrypt.hash(updateData.password, salt);
   }
 
-  if (value.name) {
-    user.name = value.name;
+  if (updateData.name) {
+    user.name = updateData.name;
   }
 
   await user.save();

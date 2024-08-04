@@ -1,8 +1,19 @@
-export default {
+import type { Config } from "@jest/types";
+
+const config: Config.InitialOptions = {
   preset: "ts-jest",
-  "roots": [
-    "<rootDir>/src/testing/__tests__"
-  ],
-  "globalSetup": "<rootDir>/src/testing/globalSetup.ts",
-  "globalTeardown": "<rootDir>/src/testing/globalTeardown.ts",
-}
+  testEnvironment: "node",
+  roots: ["<rootDir>/src", "<rootDir>/test"],
+  transform: {
+    "^.+\\.tsx?$": "ts-jest",
+  },
+  testRegex: "(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$",
+  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
+  verbose: true,
+  forceExit: true,
+  clearMocks: true,
+  resetMocks: true,
+  restoreMocks: true,
+};
+
+export default config;

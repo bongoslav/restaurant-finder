@@ -1,5 +1,3 @@
-// src/middlewares/validateRequest.ts
-
 import { Request, Response, NextFunction } from "express";
 import Joi from "joi";
 import { handleJoiValidationError } from "../utils/errorHandler";

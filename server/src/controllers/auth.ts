@@ -1,10 +1,15 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import * as authService from "../services/authService";
 import * as tokenService from "../services/tokenService";
 import { AuthRequest } from "../types/AuthRequest";
 import { ObjectId } from "mongodb";
+import { AppError } from "../utils/errorHandler";
 
-export const getCurrentUser = async (req: AuthRequest, res: Response) => {
+export const getCurrentUser = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const user = await authService.getCurrentUser(req.user.userId);
 
@@ -18,11 +23,15 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ error: "Error fetching user data" });
+    next(error);
   }
 };
 
-export const registerUser = async (req: Request, res: Response) => {
+export const registerUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { email, password, username, name } = req.body;
 
@@ -38,24 +47,17 @@ export const registerUser = async (req: Request, res: Response) => {
       data: newUser,
     });
   } catch (error) {
-    console.error("Error in register user:", error);
-    res.status(500).json({
-      status: "error",
-      message: "An error occurred while registering a user",
-    });
+    next(error);
   }
 };
 
-export const loginUser = async (req: Request, res: Response) => {
+export const loginUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({
-        status: "error",
-        message: "Email and password are required",
-      });
-    }
 
     const user = await authService.findByCredentials(email, password);
     const { accessToken, refreshToken } = await tokenService.generateTokens(
@@ -82,24 +84,20 @@ export const loginUser = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error("Error in login:", error.message);
-
-    res.status(400).json({
-      status: "error",
-      message: "Invalid login credentials",
-    });
+    next(error);
   }
 };
 
-export const logoutUser = async (req: AuthRequest, res: Response) => {
+export const logoutUser = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
-      return res.status(400).json({
-        status: "error",
-        message: "No refresh token provided",
-      });
+      return next(new AppError(400, "Refresh token not provided"));
     }
 
     const objectUserId = new ObjectId(req.user.userId);
@@ -112,15 +110,15 @@ export const logoutUser = async (req: AuthRequest, res: Response) => {
       message: "Logged out successfully",
     });
   } catch (error) {
-    console.error("Error in logoutUser:", error.message);
-    res.status(500).json({
-      status: "error",
-      message: "An error occurred during logout",
-    });
+    next(error);
   }
 };
 
-export const getUser = async (req: AuthRequest, res: Response) => {
+export const getUser = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { userId } = req.params;
 
@@ -138,33 +136,22 @@ export const getUser = async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (error) {
-    console.error("Error in getUser:", error.message);
-
-    if (error.message === "User not found") {
-      return res.status(404).json({
-        status: "error",
-        message: "User not found",
-      });
-    }
-
-    res.status(500).json({
-      status: "error",
-      message: "An error occurred while fetching user data",
-    });
+    next(error);
   }
 };
 
-export const updateUser = async (req: AuthRequest, res: Response) => {
+export const updateUser = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { userId } = req.params;
-    const { username, email, password, name } = req.body;
-
-    if (userId !== req.user.userId) {
-      return res.status(403).json({
-        status: "error",
-        message: "You can only update your own user data",
-      });
+    if (req.user.userId !== userId) {
+      return next(new AppError(403, "User can update only their own data"));
     }
+
+    const { username, email, password, name } = req.body;
 
     const updatedUser = await authService.updateUser(userId, {
       username,
@@ -185,48 +172,20 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (error) {
-    console.error("Error in updateUser:", error.message);
-
-    if (error.message.includes("Validation error")) {
-      return res.status(400).json({
-        status: "error",
-        message: error.message,
-      });
-    }
-
-    if (error.message === "User not found") {
-      return res.status(404).json({
-        status: "error",
-        message: "User not found",
-      });
-    }
-
-    if (
-      error.message === "Username is already taken" ||
-      error.message === "Email is already in use"
-    ) {
-      return res.status(409).json({
-        status: "error",
-        message: error.message,
-      });
-    }
-
-    res.status(500).json({
-      status: "error",
-      message: "An error occurred while updating user data",
-    });
+    next(error);
   }
 };
 
-export const refreshToken = async (req: Request, res: Response) => {
+export const refreshToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { refreshToken } = req.cookies;
 
     if (!refreshToken) {
-      return res.status(401).json({
-        status: "error",
-        message: "Refresh token is missing",
-      });
+      return next(new AppError(401, "Refresh token not provided"));
     }
 
     const result = await tokenService.refreshAccessToken(refreshToken);
@@ -245,18 +204,10 @@ export const refreshToken = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error("Error in refreshToken:", error.message);
-
-    if (error.message === "Invalid refresh token") {
-      return res.status(401).json({
-        status: "error",
-        message: "Invalid or expired refresh token",
-      });
+    if (error instanceof AppError) {
+      return next(error);
+    } else {
+      return next(new AppError(500, "Error refreshing token"));
     }
-
-    res.status(500).json({
-      status: "error",
-      message: "An error occurred while refreshing the token",
-    });
   }
 };

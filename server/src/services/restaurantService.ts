@@ -1,6 +1,5 @@
 import { FilterQuery, Types, PipelineStage } from "mongoose";
-import Restaurant from "../models/restaurant.model";
-import IRestaurant from "../types/Restaurant";
+import Restaurant, { IRestaurant } from "../models/restaurant.model";
 import { AppError } from "../utils/errorHandler";
 
 interface GetAllRestaurantsOptions {

@@ -10,7 +10,11 @@ import {
 } from "../controllers/auth";
 import { isLoggedIn } from "../middlewares/auth";
 import { validateRequest } from "../middlewares/validateRequest";
-import { loginUserSchema, registerUserSchema } from "../validations/schemas";
+import {
+  loginUserSchema,
+  registerUserSchema,
+  updateUserSchema,
+} from "../validations/schemas";
 
 const router = express();
 
@@ -21,6 +25,11 @@ router.post("/logout", isLoggedIn, logoutUser);
 router.post("/refresh-token", refreshToken);
 
 router.get("/users/:userId", isLoggedIn, getUser);
-router.put("/users/:userId", isLoggedIn, updateUser);
+router.put(
+  "/users/:userId",
+  isLoggedIn,
+  validateRequest(updateUserSchema),
+  updateUser
+);
 
 export default router;

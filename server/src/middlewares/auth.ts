@@ -2,6 +2,7 @@ import { Response, NextFunction } from "express";
 import { verifyAccessToken } from "../config/jwt";
 import { AuthRequest } from "../types/AuthRequest";
 import "dotenv/config";
+import { AppError } from "../utils/errorHandler";
 
 export const isLoggedIn = async (
   req: AuthRequest,
@@ -16,10 +17,7 @@ export const isLoggedIn = async (
   }
 
   if (!accessToken) {
-    return res.status(401).json({
-      status: "error",
-      data: "Access token not provided",
-    });
+    return next(new AppError(401, "Access token not provided"));
   }
 
   try {
@@ -28,19 +26,11 @@ export const isLoggedIn = async (
     req.user = { userId: payload.userId };
 
     next();
-  } catch (err) {
-    console.error("Error verifying access token:", err);
-
-    if (err.name === "TokenExpiredError") {
-      return res.status(401).json({
-        status: "error",
-        message: "Access token has expired",
-      });
+  } catch (error) {
+    if (error instanceof Error) {
+      next(new AppError(401, error.message));
+    } else {
+      next(new AppError(401, "Invalid access token"));
     }
-
-    return res.status(401).json({
-      status: "error",
-      message: "Invalid access token",
-    });
   }
 };

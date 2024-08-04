@@ -1,6 +1,6 @@
 import mongoose, { Types } from "mongoose";
 
-interface IReview {
+export interface IReview {
   _id?: Types.ObjectId;
   title: string;
   userId: Types.ObjectId;
@@ -8,7 +8,7 @@ interface IReview {
   text: string;
 }
 
-interface IRestaurant {
+export interface IRestaurant {
   _id?: Types.ObjectId;
   name: string;
   location: string;

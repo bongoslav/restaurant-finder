@@ -13,18 +13,18 @@ export const isRestaurantOwner = async (
   const objectUserId = new ObjectId(req.user.userId);
   const restaurant = await Restaurant.findById(req.params.id);
   if (!restaurant) {
-    throw new AppError(404, "Restaurant not found");
+    return next(new AppError(404, "Restaurant not found"));
   }
 
   const user = await User.findById(objectUserId);
   if (!user) {
-    throw new AppError(404, "User not found");
+    return next(new AppError(404, "User not found"));
   }
 
   const ownerId = restaurant.ownerId;
 
   if (!ownerId.equals(objectUserId)) {
-    throw new AppError(401, "Logged in user is not restaurant's owner");
+    return next(new AppError(403, "Logged in user is not restaurant's owner"));
   }
 
   next();

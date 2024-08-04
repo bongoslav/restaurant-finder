@@ -46,5 +46,5 @@ export const errorHandler = (
 export const handleJoiValidationError = (
   error: Joi.ValidationError
 ): AppError => {
-  return new AppError(400, "Validation Error", error.details);
+  throw new AppError(400, "Validation Error", error.details);
 };
