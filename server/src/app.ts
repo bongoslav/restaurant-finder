@@ -11,10 +11,17 @@ import limiter from "./middlewares/rateLimit";
 
 const app = express();
 
+const { NODE_ENV, CLIENT_PROD_URL, CLIENT_DEV_URL } = process.env;
+
 // middlewares
 app.use(limiter);
 app.use(cookieParser());
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(
+  cors({
+    origin: NODE_ENV === "PROD" ? CLIENT_PROD_URL : CLIENT_DEV_URL,
+    credentials: true,
+  })
+);
 app.use(express.json());
 if (process.env.NODE_ENV !== "test") {
   app.use(morgan("dev"));
