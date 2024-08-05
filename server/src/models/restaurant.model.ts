@@ -17,6 +17,8 @@ export interface IRestaurant {
   hours: string[];
   cuisine: string;
   ownerId: Types.ObjectId;
+  reviewCount: number;
+  averageRating: number;
   reviews: IReview[];
 }
 
@@ -92,14 +94,16 @@ const restaurantSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    reviewCount: { type: Number, default: 0 },
+    averageRating: { type: Number, default: 0 },
     reviews: [reviewSchema],
   },
   { timestamps: true }
 );
 
-// fields that are frequently filtered by
-restaurantSchema.index({ cuisine: 1 });
-restaurantSchema.index({ priceRange: 1 });
+// fields that are frequently filtered/sorted by
+restaurantSchema.index({ cuisine: 1, priceRange: 1 });
+restaurantSchema.index({ name: 1, priceRange: 1 });
 restaurantSchema.index({ "reviews.rating": 1 });
 
 const Restaurant = mongoose.model<IRestaurant>("Restaurant", restaurantSchema);

@@ -48,46 +48,47 @@ export const getAllRestaurants = async (options: GetAllRestaurantsOptions) => {
   const aggregationPipeline: PipelineStage[] = [
     { $match: matchStage },
     {
-      $addFields: {
-        reviewCount: { $size: "$reviews" },
-        averageRating: {
-          $cond: [
-            { $gt: [{ $size: "$reviews" }, 0] },
-            { $avg: "$reviews.rating" },
-            0,
-          ],
-        },
+      // $facet improves reading time
+      $facet: {
+        metadata: [{ $count: "total" }],
+        data: [
+          {
+            $project: {
+              name: 1,
+              location: 1,
+              priceRange: 1,
+              cuisine: 1,
+              ownerId: 1,
+              images: 1,
+              reviewCount: 1,
+              averageRating: 1,
+            },
+          },
+          { $sort: { [sortBy]: sortOrder === "asc" ? 1 : -1 } },
+          { $skip: (page - 1) * limit },
+          { $limit: limit },
+        ],
       },
     },
-    {
-      $project: {
-        name: 1,
-        location: 1,
-        priceRange: 1,
-        cuisine: 1,
-        ownerId: 1,
-        images: 1,
-        reviewCount: 1,
-        averageRating: { $round: ["$averageRating", 1] },
-      },
-    },
-    { $sort: { [sortBy]: sortOrder === "asc" ? 1 : -1 } },
-    { $skip: (page - 1) * limit },
-    { $limit: limit },
   ];
 
-  const restaurants = await Restaurant.aggregate<AggregatedRestaurant>(
-    aggregationPipeline
-  );
+  const [result] = await Restaurant.aggregate(aggregationPipeline);
 
-  const total = await Restaurant.countDocuments(matchStage);
+  const restaurants = result.data;
+  const totalRestaurants = result.metadata[0]?.total || 0;
+
+  // const restaurants = await Restaurant.aggregate<AggregatedRestaurant>(
+  //   aggregationPipeline
+  // );
+
+  // const total = await Restaurant.countDocuments(matchStage);
 
   return {
     restaurants,
     page,
     limit,
-    totalPages: Math.ceil(total / limit),
-    totalRestaurants: total,
+    totalPages: Math.ceil(totalRestaurants / limit),
+    totalRestaurants,
   };
 };
 
