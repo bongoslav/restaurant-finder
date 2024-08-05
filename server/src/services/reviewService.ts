@@ -88,42 +88,28 @@ export const deleteReview = async (
   restaurantId: string,
   reviewId: Types.ObjectId
 ) => {
-  await checkForRestaurant(restaurantId);
+  const restaurant = await checkForRestaurant(restaurantId);
+
+  const reviewIndex = restaurant.reviews.findIndex((review) =>
+    review._id.equals(reviewId)
+  );
+
+  const reviewToDelete = restaurant.reviews[reviewIndex];
+
+  const totalRatings =
+    restaurant.reviewCount * restaurant.averageRating - reviewToDelete.rating;
+  const newReviewCount = restaurant.reviewCount - 1;
+  const newAverageRating =
+    newReviewCount > 0 ? Number((totalRatings / newReviewCount).toFixed(1)) : 0;
+
   try {
-    await Restaurant.findOneAndUpdate(
-      { _id: restaurantId },
-      [
-        {
-          $set: {
-            reviews: {
-              $filter: {
-                input: "$reviews",
-                cond: { $ne: ["$$this._id", reviewId] },
-              },
-            },
-            reviewCount: { $subtract: ["$reviewCount", 1] },
-            averageRating: {
-              $round: [
-                {
-                  $cond: [
-                    { $eq: [{ $size: "$reviews" }, 1] },
-                    0,
-                    {
-                      $avg: {
-                        $filter: {
-                          input: "$reviews.rating",
-                          cond: { $ne: ["$$this._id", reviewId] },
-                        },
-                      },
-                    },
-                  ],
-                },
-                1,
-              ],
-            },
-          },
-        },
-      ],
+    await Restaurant.findByIdAndUpdate(
+      restaurantId,
+      {
+        $pull: { reviews: { _id: new Types.ObjectId(reviewId) } },
+        $inc: { reviewCount: -1 },
+        $set: { averageRating: newAverageRating },
+      },
       { new: true, runValidators: true }
     );
   } catch (error) {
