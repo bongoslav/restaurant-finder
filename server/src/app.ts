@@ -7,10 +7,12 @@ import reviewRoutes from "./routes/reviews";
 import authRoutes from "./routes/auth";
 import cookieParser from "cookie-parser";
 import { errorHandler } from "./utils/errorHandler";
+import limiter from "./middlewares/rateLimit";
 
 const app = express();
 
 // middlewares
+app.use(limiter);
 app.use(cookieParser());
 app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
