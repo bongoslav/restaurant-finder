@@ -17,14 +17,14 @@ const startServer = async () => {
     await connectDB();
     setupMongooseEvents();
 
+    const port = Number(PORT) || 3000;
     if (NODE_ENV === "DEV") {
-      const port = Number(PORT) || 3000;
       server.listen(port, () => {
         console.log(`Express is listening at http://localhost:${port}`);
         console.log(`CORS is set to accept requests from: ${CLIENT_DEV_URL}`);
       });
     } else {
-      server.listen(() => {
+      server.listen(port, () => {
         console.log("Server is running in production mode");
         console.log(`CORS is set to accept requests from: ${CLIENT_PROD_URL}`);
       });
