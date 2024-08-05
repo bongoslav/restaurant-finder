@@ -5,6 +5,8 @@
   "main": "main/app.js",
   "scripts": {
     "dev": "nodemon src/server.ts",
+    "build": "tsc",
+    "start:prod": "node dist/src/server.js",
     "lint": "eslint . --ext .ts",
     "test": "jest"
   },
