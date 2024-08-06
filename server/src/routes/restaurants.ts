@@ -13,7 +13,7 @@ import { createRestaurantSchema } from "../validations/schemas";
 
 const router = express();
 
-router.get("/", isLoggedIn, getAllRestaurants);
+router.get("/", getAllRestaurants);
 router.get("/:id", getRestaurantById);
 router.post(
   "/",
