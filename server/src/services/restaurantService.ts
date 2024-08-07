@@ -1,4 +1,4 @@
-import { Types, PipelineStage } from "mongoose";
+import { Types } from "mongoose";
 import Restaurant from "../models/restaurant.model";
 import { AppError } from "../utils/errorHandler";
 import { GetAllRestaurantsQueryParams } from "../controllers/restaurants";
@@ -93,37 +93,9 @@ export const getRestaurantById = async (id: string) => {
     throw new AppError(400, "Invalid restaurant ID");
   }
 
-  const aggregationPipeline: PipelineStage[] = [
-    { $match: { _id: new Types.ObjectId(id) } },
-    {
-      $addFields: {
-        reviewCount: { $size: "$reviews" },
-        averageRating: {
-          $cond: [
-            { $gt: [{ $size: "$reviews" }, 0] },
-            { $avg: "$reviews.rating" },
-            0,
-          ],
-        },
-      },
-    },
-    {
-      $project: {
-        name: 1,
-        location: 1,
-        priceRange: 1,
-        cuisine: 1,
-        ownerId: 1,
-        images: 1,
-        reviewCount: 1,
-        averageRating: { $round: ["$averageRating", 1] },
-      },
-    },
-  ];
+  const restaurant = await Restaurant.findById(id);
 
-  const restaurant = await Restaurant.aggregate(aggregationPipeline);
-
-  if (restaurant.length === 0) {
+  if (!restaurant) {
     throw new AppError(404, "Restaurant not found");
   }
 
