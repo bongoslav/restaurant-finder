@@ -1,94 +1,75 @@
-import React, { useMemo } from "react";
-import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
-import { Flex, Select, TextField } from "@radix-ui/themes";
-import debounce from "lodash/debounce";
-import { restaurants } from "../../data";
+import React from "react";
+import { Flex, Select } from "@radix-ui/themes";
 
-const priceRanges = [
-  { label: "All", value: "all" },
+interface Filters {
+  cuisine: string;
+  priceRange: number[];
+  reviewRange: number[];
+}
+
+interface RestaurantsFiltersProps {
+  filters: Filters;
+  setFilters: (filters: Filters) => void;
+  availableCuisines: string[];
+}
+
+const priceRangeOptions = [
+  { label: "All Prices", value: "0-Infinity" },
   { label: "$", value: "1-1" },
   { label: "$$", value: "2-2" },
   { label: "$$$", value: "3-3" },
   { label: "$$$$", value: "4-4" },
-  { label: "$-$$", value: "1-2" },
-  { label: "$$-$$$", value: "2-3" },
-  { label: "$$$-$$$$", value: "3-4" },
+  { label: "$$$$$", value: "5-5" },
 ];
 
-const reviewRanges = [
-  { label: "All", value: "all" },
-  { label: "<5", value: "0-4" },
-  { label: "6-10", value: "6-10" },
-  { label: "11-20", value: "11-20" },
-  { label: ">20", value: "21-Infinity" },
+const reviewRangeOptions = [
+  { label: "Any number of reviews", value: "0-Infinity" },
+  { label: "1-10 reviews", value: "1-10" },
+  { label: "11-50 reviews", value: "11-50" },
+  { label: "51-100 reviews", value: "51-100" },
+  { label: "101+ reviews", value: "101-Infinity" },
 ];
 
-interface RestaurantsFiltersProps {
-  setSearchTerm: (value: string) => void;
-  cuisine: string;
-  setCuisine: (value: string) => void;
-  priceRange: number[];
-  setPriceRange: (value: number[]) => void;
-  reviewRange: number[];
-  setReviewRange: (value: number[]) => void;
-}
-
-const RestaurantsFilters = ({
-  setSearchTerm,
-  cuisine,
-  setCuisine,
-  priceRange,
-  setPriceRange,
-  reviewRange,
-  setReviewRange,
-}: RestaurantsFiltersProps) => {
-  const uniqueCuisines = useMemo(
-    () => ["All Cuisines", ...new Set(restaurants.map((r) => r.cuisine))],
-    []
-  );
-
-  // lodash is highly optimized
-  // if no `useMemo` -> the debounce function will be recreated on every rerender
-  const debouncedSearch = useMemo(
-    () => debounce((value: string) => setSearchTerm(value), 300),
-    [setSearchTerm]
-  );
+const RestaurantsFilters: React.FC<RestaurantsFiltersProps> = ({
+  filters,
+  setFilters,
+  availableCuisines,
+}) => {
+  const handleCuisineChange = (value: string) => {
+    setFilters({ ...filters, cuisine: value === "All Cuisines" ? "" : value });
+  };
 
   const handlePriceRangeChange = (value: string) => {
-    if (value === "all") {
-      setPriceRange([]);
-    } else {
-      setPriceRange(value.split("-").map(Number));
-    }
+    const [min, max] = value.split("-").map(Number);
+    setFilters({ ...filters, priceRange: [min, max] });
   };
 
   const handleReviewRangeChange = (value: string) => {
-    if (value === "all") {
-      setReviewRange([]);
-    } else {
-      setReviewRange(
-        value.split("-").map((v) => (v === "Infinity" ? Infinity : Number(v)))
-      );
-    }
+    const [min, max] = value
+      .split("-")
+      .map((v) => (v === "Infinity" ? Infinity : Number(v)));
+    setFilters({ ...filters, reviewRange: [min, max] });
+  };
+
+  const getPriceRangeValue = () => {
+    const [min, max] = filters.priceRange;
+    return `${min}-${max === Infinity ? "Infinity" : max}`;
+  };
+
+  const getReviewRangeValue = () => {
+    const [min, max] = filters.reviewRange;
+    return `${min}-${max === Infinity ? "Infinity" : max}`;
   };
 
   return (
     <Flex gap="2" wrap="wrap">
-      <TextField.Root
-        style={{ flexGrow: 1, minWidth: "200px" }}
-        placeholder="Search for a restaurant..."
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-          debouncedSearch(e.target.value)
-        }
+      <Select.Root
+        value={filters.cuisine || "All Cuisines"}
+        onValueChange={handleCuisineChange}
       >
-        <TextField.Slot>
-          <MagnifyingGlassIcon height="16" width="16" />
-        </TextField.Slot>
-      </TextField.Root>
-      <Select.Root value={cuisine} onValueChange={setCuisine}>
         <Select.Trigger placeholder="Cuisine" />
         <Select.Content>
-          {uniqueCuisines.map((c) => (
+          {availableCuisines.map((c) => (
             <Select.Item key={c} value={c}>
               {c}
             </Select.Item>
@@ -96,29 +77,27 @@ const RestaurantsFilters = ({
         </Select.Content>
       </Select.Root>
       <Select.Root
-        value={priceRange.length ? `${priceRange[0]}-${priceRange[1]}` : "all"}
+        value={getPriceRangeValue()}
         onValueChange={handlePriceRangeChange}
       >
         <Select.Trigger placeholder="Price Range" />
         <Select.Content>
-          {priceRanges.map((range) => (
-            <Select.Item key={range.label} value={range.value}>
-              {range.label}
+          {priceRangeOptions.map((option) => (
+            <Select.Item key={option.value} value={option.value}>
+              {option.label}
             </Select.Item>
           ))}
         </Select.Content>
       </Select.Root>
       <Select.Root
-        value={
-          reviewRange.length ? `${reviewRange[0]}-${reviewRange[1]}` : "all"
-        }
+        value={getReviewRangeValue()}
         onValueChange={handleReviewRangeChange}
       >
         <Select.Trigger placeholder="Number of Reviews" />
         <Select.Content>
-          {reviewRanges.map((range) => (
-            <Select.Item key={range.label} value={range.value}>
-              {range.label}
+          {reviewRangeOptions.map((option) => (
+            <Select.Item key={option.value} value={option.value}>
+              {option.label}
             </Select.Item>
           ))}
         </Select.Content>

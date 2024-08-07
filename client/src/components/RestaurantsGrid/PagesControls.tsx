@@ -4,12 +4,14 @@ import { Flex, Button, Text } from "@radix-ui/themes";
 interface PagesControlsProps {
   totalPages: number;
   currentPage: number;
+  hasNextPage: boolean;
   setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const PagesControls = ({
-  totalPages,
   currentPage,
+  totalPages,
+  hasNextPage,
   setCurrentPage,
 }: PagesControlsProps) => {
   return (
@@ -26,7 +28,7 @@ const PagesControls = ({
       </Text>
       <Button
         onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-        disabled={currentPage === totalPages}
+        disabled={!hasNextPage}
         style={{ cursor: "pointer" }}
       >
         Next <ChevronRightIcon />

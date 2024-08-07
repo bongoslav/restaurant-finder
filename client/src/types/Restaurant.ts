@@ -1,12 +1,17 @@
 import Review from "./Review";
 
-export default interface Restaurant {
-  id: number;
+export interface Restaurant {
+  _id: string;
   name: string;
   location: string;
   priceRange: number;
   images: string[];
   hours: string[];
   cuisine: string;
+  ownerId: string;
+  reviewCount: number;
+  averageRating: number;
   reviews: Review[];
 }
+
+export type GetAllRestaurantsResponse = Omit<Restaurant, "reviews" | "hours">;

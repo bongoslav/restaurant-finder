@@ -1,7 +1,7 @@
 export default interface Review {
-  id: number;
+  _id: string;
   title: string;
-  authorId: string;
+  userId: string;
   rating: number;
   text: string;
 }

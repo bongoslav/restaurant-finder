@@ -1,19 +1,22 @@
 import { Card, Text, Flex, Badge, Heading } from "@radix-ui/themes";
 import { StarFilledIcon } from "@radix-ui/react-icons";
-import Restaurant from "../types/Restaurant";
+import { GetAllRestaurantsResponse } from "../types/Restaurant";
 import { Link } from "react-router-dom";
 
-function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
-  const { id, images, reviews, name, cuisine } = restaurant;
-  const headImage = images[0];
+function RestaurantCard({
+  restaurant,
+}: {
+  restaurant: GetAllRestaurantsResponse;
+}) {
+  const { _id, images, name, cuisine, averageRating } = restaurant;
 
-  const ratings = reviews.map((review) => review.rating);
-  const totalRating = ratings.reduce((acc, rating) => acc + rating, 0);
-  const avgRating = totalRating / ratings.length;
+  const headImage = images[0];
+  console.log(headImage);
+  
 
   return (
     <Link
-      to={`/restaurant/${id}`}
+      to={`/restaurant/${_id}`}
       style={{ textDecoration: "none", color: "inherit" }}
     >
       <Card style={{ cursor: "pointer" }}>
@@ -28,10 +31,10 @@ function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
           </Heading>
           <Badge>{cuisine}</Badge>
           <Flex align="center" gap="1">
-            {reviews.length > 0 ? (
+            {averageRating ? (
               <>
                 <StarFilledIcon />
-                <Text>{avgRating.toFixed(1)}/5</Text>
+                <Text>{averageRating.toFixed(1)}/5</Text>
               </>
             ) : (
               <Text>No Reviews Yet</Text>
