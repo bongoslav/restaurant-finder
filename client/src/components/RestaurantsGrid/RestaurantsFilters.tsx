@@ -1,4 +1,3 @@
-import React from "react";
 import { Flex, Select } from "@radix-ui/themes";
 
 interface Filters {
@@ -23,20 +22,23 @@ const priceRangeOptions = [
 ];
 
 const reviewRangeOptions = [
-  { label: "Any number of reviews", value: "0-Infinity" },
+  { label: "Number of reviews", value: "0-Infinity" },
   { label: "1-10 reviews", value: "1-10" },
   { label: "11-50 reviews", value: "11-50" },
   { label: "51-100 reviews", value: "51-100" },
   { label: "101+ reviews", value: "101-Infinity" },
 ];
 
-const RestaurantsFilters: React.FC<RestaurantsFiltersProps> = ({
+const RestaurantsFilters = ({
   filters,
   setFilters,
   availableCuisines,
-}) => {
+}: RestaurantsFiltersProps) => {
   const handleCuisineChange = (value: string) => {
-    setFilters({ ...filters, cuisine: value === "All Cuisines" ? "" : value });
+    setFilters({
+      ...filters,
+      cuisine: value === "All Cuisines" ? "" : value,
+    });
   };
 
   const handlePriceRangeChange = (value: string) => {
@@ -62,7 +64,7 @@ const RestaurantsFilters: React.FC<RestaurantsFiltersProps> = ({
   };
 
   return (
-    <Flex gap="2" wrap="wrap">
+    <Flex gap="4" wrap="wrap" justify="center" mb="4">
       <Select.Root
         value={filters.cuisine || "All Cuisines"}
         onValueChange={handleCuisineChange}
@@ -76,11 +78,16 @@ const RestaurantsFilters: React.FC<RestaurantsFiltersProps> = ({
           ))}
         </Select.Content>
       </Select.Root>
+
       <Select.Root
         value={getPriceRangeValue()}
         onValueChange={handlePriceRangeChange}
       >
-        <Select.Trigger placeholder="Price Range" />
+        <Select.Trigger>
+          {priceRangeOptions.find(
+            (option) => option.value === getPriceRangeValue()
+          )?.label || "All Prices"}
+        </Select.Trigger>
         <Select.Content>
           {priceRangeOptions.map((option) => (
             <Select.Item key={option.value} value={option.value}>
@@ -89,11 +96,16 @@ const RestaurantsFilters: React.FC<RestaurantsFiltersProps> = ({
           ))}
         </Select.Content>
       </Select.Root>
+
       <Select.Root
         value={getReviewRangeValue()}
         onValueChange={handleReviewRangeChange}
       >
-        <Select.Trigger placeholder="Number of Reviews" />
+        <Select.Trigger>
+          {reviewRangeOptions.find(
+            (option) => option.value === getPriceRangeValue()
+          )?.label || "Number of Reviews"}
+        </Select.Trigger>
         <Select.Content>
           {reviewRangeOptions.map((option) => (
             <Select.Item key={option.value} value={option.value}>

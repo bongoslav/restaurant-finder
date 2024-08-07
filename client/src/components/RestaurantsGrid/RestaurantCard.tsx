@@ -1,6 +1,6 @@
 import { Card, Text, Flex, Badge, Heading } from "@radix-ui/themes";
 import { StarFilledIcon } from "@radix-ui/react-icons";
-import { GetAllRestaurantsResponse } from "../types/Restaurant";
+import { GetAllRestaurantsResponse } from "../../types/Restaurant";
 import { Link } from "react-router-dom";
 
 function RestaurantCard({
@@ -11,8 +11,6 @@ function RestaurantCard({
   const { _id, images, name, cuisine, averageRating } = restaurant;
 
   const headImage = images[0];
-  console.log(headImage);
-  
 
   return (
     <Link

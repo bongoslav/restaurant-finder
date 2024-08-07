@@ -4,6 +4,8 @@ import RestaurantGrid from "../components/RestaurantsGrid/RestaurantGrid";
 import RestaurantsFilters from "../components/RestaurantsGrid/RestaurantsFilters";
 import PagesControls from "../components/RestaurantsGrid/PagesControls";
 import { GetAllRestaurantsResponse } from "../types/Restaurant";
+import fetcher from "../util/fetcher";
+import { Box, Flex } from "@radix-ui/themes";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -28,8 +30,6 @@ interface Filters {
   priceRange: number[];
   reviewRange: number[];
 }
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 const RestaurantListPage = () => {
   const [filters, setFilters] = useState<Filters>({
@@ -58,7 +58,6 @@ const RestaurantListPage = () => {
     return `${API_URL}/api/v1/restaurants?${params.toString()}`;
   }, [currentPage, filters]);
 
-  // TODO: show animation when loading
   const {
     data: restaurantsResponse,
     error: restaurantsFetchError,
@@ -91,11 +90,15 @@ const RestaurantListPage = () => {
 
   return (
     <div>
-      <RestaurantsFilters
-        filters={filters}
-        setFilters={handleFiltersChange}
-        availableCuisines={allCuisines}
-      />
+      <Flex justify="center" mb="4">
+        <Box width="100%" style={{ maxWidth: "800px" }}>
+          <RestaurantsFilters
+            filters={filters}
+            setFilters={handleFiltersChange}
+            availableCuisines={allCuisines}
+          />
+        </Box>
+      </Flex>
       <RestaurantGrid restaurants={restaurantsResponse.data} />
       <PagesControls
         currentPage={restaurantsResponse.pagination.currentPage}

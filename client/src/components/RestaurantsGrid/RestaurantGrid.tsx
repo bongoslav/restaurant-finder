@@ -1,5 +1,5 @@
 import { Grid } from "@radix-ui/themes";
-import RestaurantCard from "../RestaurantCard";
+import RestaurantCard from "./RestaurantCard";
 import { GetAllRestaurantsResponse } from "../../types/Restaurant";
 
 export interface RestaurantGridProps {
