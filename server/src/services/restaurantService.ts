@@ -1,17 +1,9 @@
-import { FilterQuery, Types, PipelineStage } from "mongoose";
-import Restaurant, { IRestaurant } from "../models/restaurant.model";
+import { Types, PipelineStage } from "mongoose";
+import Restaurant from "../models/restaurant.model";
 import { AppError } from "../utils/errorHandler";
+import { GetAllRestaurantsQueryParams } from "../controllers/restaurants";
 
-interface GetAllRestaurantsOptions {
-  page: number;
-  limit: number;
-  sortBy: string;
-  sortOrder: "asc" | "desc";
-  cuisine?: string;
-  minPrice?: number;
-  maxPrice?: number;
-}
-
+// TODO: check again to replace aggregation
 interface AggregatedRestaurant {
   _id: Types.ObjectId;
   name: string;
@@ -33,63 +25,67 @@ export interface UpdateRestaurantBody {
   hours?: string[];
 }
 
-export const getAllRestaurants = async (options: GetAllRestaurantsOptions) => {
-  const { page, limit, sortBy, sortOrder, cuisine, minPrice, maxPrice } =
-    options;
+export const getAllRestaurants = async (
+  options: GetAllRestaurantsQueryParams & { limit: string }
+) => {
+  const {
+    page,
+    search,
+    cuisine,
+    minPrice,
+    maxPrice,
+    minReviews,
+    maxReviews,
+    sortBy,
+    sortOrder,
+    limit,
+  } = options;
 
-  const matchStage: FilterQuery<IRestaurant> = {};
-  if (cuisine) matchStage.cuisine = cuisine;
-  if (minPrice !== undefined || maxPrice !== undefined) {
-    matchStage.priceRange = {};
-    if (minPrice !== undefined) matchStage.priceRange.$gte = minPrice;
-    if (maxPrice !== undefined) matchStage.priceRange.$lte = maxPrice;
-  }
+  const pageNumber = parseInt(page as string);
+  const minPriceNumber = parseInt(minPrice as string);
+  const maxPriceNumber =
+    maxPrice === "Infinity" ? Infinity : parseInt(maxPrice as string);
+  const minReviewsNumber = parseInt(minReviews as string);
+  const maxReviewsNumber =
+    maxReviews === "Infinity" ? Infinity : parseInt(maxReviews as string);
+  const sortOrderNumber = sortOrder === "asc" ? 1 : -1;
+  const limitNumber = parseInt(limit);
 
-  const aggregationPipeline: PipelineStage[] = [
-    { $match: matchStage },
-    {
-      // $facet improves reading time
-      $facet: {
-        metadata: [{ $count: "total" }],
-        data: [
-          {
-            $project: {
-              name: 1,
-              location: 1,
-              priceRange: 1,
-              cuisine: 1,
-              ownerId: 1,
-              images: 1,
-              reviewCount: 1,
-              averageRating: 1,
-            },
-          },
-          { $sort: { [sortBy]: sortOrder === "asc" ? 1 : -1 } },
-          { $skip: (page - 1) * limit },
-          { $limit: limit },
-        ],
-      },
-    },
-  ];
+  const query = {
+    name: { $regex: search, $options: "i" },
+    cuisine: cuisine ? cuisine : { $exists: true },
+    priceRange: { $gte: minPriceNumber, $lte: maxPriceNumber },
+    reviewCount: { $gte: minReviewsNumber, $lte: maxReviewsNumber },
+  };
 
-  const [result] = await Restaurant.aggregate(aggregationPipeline);
+  const skip = (pageNumber - 1) * limitNumber;
 
-  const restaurants = result.data;
-  const totalRestaurants = result.metadata[0]?.total || 0;
+  const restaurants = await Restaurant.find(query)
+    .select("-reviews") // exclude the "reviews" field
+    .skip(skip)
+    .limit(limitNumber)
+    .sort({ [sortBy]: sortOrderNumber });
 
-  // const restaurants = await Restaurant.aggregate<AggregatedRestaurant>(
-  //   aggregationPipeline
-  // );
+  const totalRestaurants = restaurants.length;
 
-  // const total = await Restaurant.countDocuments(matchStage);
+  const totalPages = Math.ceil(totalRestaurants / limitNumber);
 
   return {
     restaurants,
     page,
-    limit,
-    totalPages: Math.ceil(totalRestaurants / limit),
+    totalPages: totalPages,
     totalRestaurants,
+    hasNextPage: pageNumber < totalPages,
   };
+};
+
+export const getAllCuisines = async () => {
+  try {
+    return await Restaurant.distinct("cuisine");
+  } catch (error) {
+    console.error("Error fetching all cuisines:", error);
+    throw new AppError(500, "Failed to fetch all cuisines");
+  }
 };
 
 export const getRestaurantById = async (id: string) => {

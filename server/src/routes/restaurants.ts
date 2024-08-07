@@ -5,6 +5,7 @@ import {
   getRestaurantById,
   updateRestaurant,
   deleteRestaurant,
+  getAllCuisines,
 } from "../controllers/restaurants";
 import { isLoggedIn } from "../middlewares/auth";
 import { isRestaurantOwner } from "../middlewares/isRestaurantOwner";
@@ -14,6 +15,7 @@ import { createRestaurantSchema } from "../validations/schemas";
 const router = express();
 
 router.get("/", getAllRestaurants);
+router.get("/cuisines", getAllCuisines);
 router.get("/:id", getRestaurantById);
 router.post(
   "/",

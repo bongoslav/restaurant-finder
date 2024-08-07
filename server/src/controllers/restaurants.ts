@@ -4,40 +4,52 @@ import { AuthRequest } from "../types/AuthRequest";
 
 const MAX_RESTAURANTS_PER_PAGE = 8;
 
+export interface GetAllRestaurantsQueryParams {
+  page?: string;
+  search?: string;
+  cuisine?: string;
+  minPrice?: string;
+  maxPrice?: string;
+  minReviews?: string;
+  maxReviews?: string;
+  sortBy?: string;
+  sortOrder?: string;
+}
+
+// TODO: adjust test
 export const getAllRestaurants = async (
-  req: Request,
+  req: Request<object, object, object, GetAllRestaurantsQueryParams>,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const limit = Math.min(
-      100,
-      Math.max(
-        1,
-        parseInt(req.query.limit as string) || MAX_RESTAURANTS_PER_PAGE
-      )
-    );
-    const sortBy = ["name", "priceRange", "createdAt"].includes(
-      req.query.sortBy as string
-    )
-      ? (req.query.sortBy as string)
-      : "createdAt";
-    const sortOrder: "asc" | "desc" =
-      req.query.sortOrder === "asc" ? "asc" : "desc";
+    // query params are received as strings
+    // so we need to do parsing in our service
+    const {
+      page = "1",
+      search = "",
+      cuisine = "",
+      minPrice = "0",
+      maxPrice = Infinity.toString(),
+      minReviews = "0",
+      maxReviews = Infinity.toString(),
+      sortBy = "createdAt",
+      sortOrder = "asc",
+    } = req.query;
+
+    const limit = MAX_RESTAURANTS_PER_PAGE.toString();
 
     const options = {
       page,
-      limit,
+      search,
+      cuisine,
+      minPrice,
+      maxPrice,
+      minReviews,
+      maxReviews,
       sortBy,
       sortOrder,
-      cuisine: req.query.cuisine as string | undefined,
-      minPrice: req.query.minPrice
-        ? parseInt(req.query.minPrice as string)
-        : undefined,
-      maxPrice: req.query.maxPrice
-        ? parseInt(req.query.maxPrice as string)
-        : undefined,
+      limit,
     };
 
     const result = await restaurantService.getAllRestaurants(options);
@@ -46,11 +58,28 @@ export const getAllRestaurants = async (
       status: "success",
       data: result.restaurants,
       pagination: {
-        currentPage: page,
+        currentPage: +page,
         totalPages: result.totalPages,
         totalRestaurants: result.totalRestaurants,
-        hasNextPage: page < result.totalPages,
+        hasNextPage: result.hasNextPage,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllCuisines = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const cuisines = await restaurantService.getAllCuisines();
+
+    res.status(200).json({
+      status: "success",
+      data: cuisines,
     });
   } catch (error) {
     next(error);
