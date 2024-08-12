@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "start": "vite preview --port 3000",
+    "start:prod": "VITE_ENV=PROD vite preview --port 3000",
     "build": "tsc -b && vite build",
+    "build:prod": "tsc -b && VITE_ENV=PROD vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },

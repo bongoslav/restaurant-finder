@@ -6,8 +6,7 @@ import PagesControls from "../components/RestaurantsGrid/PagesControls";
 import { GetAllRestaurantsResponse } from "../types/Restaurant";
 import fetcher from "../util/fetcher";
 import { Box, Flex } from "@radix-ui/themes";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+import API_URL from "../util/apiUrl";
 
 interface RestaurantsResponse {
   status: string;

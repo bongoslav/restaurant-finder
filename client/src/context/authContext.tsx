@@ -6,6 +6,7 @@ import {
   SignupResponse,
   User,
 } from "../types/AuthContext";
+import API_URL from "../util/apiUrl";
 
 const initialValue: AuthContextType = {
   user: null,
@@ -19,8 +20,6 @@ const initialValue: AuthContextType = {
   },
   isAuthenticated: false,
 };
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export const AuthContext = createContext<AuthContextType>(initialValue);
 
@@ -42,7 +41,7 @@ const AuthProvider = ({ children }: ContextProviderProps) => {
     try {
       const response = await fetch(`${API_URL}/api/v1/auth/refresh-token`, {
         method: "POST",
-        credentials: "include", 
+        credentials: "include",
       });
 
       if (response.ok) {

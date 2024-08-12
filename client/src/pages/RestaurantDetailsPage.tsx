@@ -14,13 +14,12 @@ import useSWR from "swr";
 import fetcher from "../util/fetcher";
 import { Restaurant } from "../types/Restaurant";
 import WorkingHours from "../components/RestaurantPage/WorkingHours";
+import API_URL from "../util/apiUrl";
 
 interface RestaurantFetchResponse {
   status: string;
   data: Restaurant;
 }
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const RestaurantDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -38,7 +37,7 @@ const RestaurantDetailsPage = () => {
   }
 
   if (restaurantFetchError) {
-    return <Text>Could not fetch restaurants</Text>
+    return <Text>Could not fetch restaurants</Text>;
   }
 
   const {
