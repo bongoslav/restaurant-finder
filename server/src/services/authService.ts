@@ -121,8 +121,7 @@ export const updateUser = async (
   }
 
   if (updateData.password) {
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(updateData.password, salt);
+    user.password = await bcrypt.hash(updateData.password, 10);
   }
 
   if (updateData.name) {

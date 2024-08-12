@@ -4,6 +4,7 @@ import * as tokenService from "../services/tokenService";
 import { AuthRequest } from "../types/AuthRequest";
 import { ObjectId } from "mongodb";
 import { AppError } from "../utils/errorHandler";
+import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
 
 export const getCurrentUser = async (
   req: AuthRequest,
@@ -16,10 +17,12 @@ export const getCurrentUser = async (
     res.status(200).json({
       status: "success",
       data: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        name: user.name,
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          name: user.name,
+        },
       },
     });
   } catch (error) {
@@ -33,7 +36,8 @@ export const registerUser = async (
   next: NextFunction
 ) => {
   try {
-    const { email, password, username, name } = req.body;
+    const { password, username, name } = req.body;
+    const email = req.body.email.toLowerCase();
 
     const newUser = await authService.registerUser({
       email,
@@ -57,7 +61,8 @@ export const loginUser = async (
   next: NextFunction
 ) => {
   try {
-    const { email, password } = req.body;
+    const { password } = req.body;
+    const email = req.body.email.toLowerCase();
 
     const user = await authService.findByCredentials(email, password);
     const { accessToken, refreshToken } = await tokenService.generateTokens(
@@ -79,6 +84,7 @@ export const loginUser = async (
           id: user._id,
           email: user.email,
           username: user.username,
+          name: user.name,
         },
         accessToken,
       },
@@ -151,7 +157,8 @@ export const updateUser = async (
       return next(new AppError(403, "User can update only their own data"));
     }
 
-    const { username, email, password, name } = req.body;
+    const { username, password, name } = req.body;
+    const email = req.body.email.toLowerCase();
 
     const updatedUser = await authService.updateUser(userId, {
       username,
@@ -204,8 +211,14 @@ export const refreshToken = async (
       },
     });
   } catch (error) {
+    res.clearCookie("refreshToken");
+
     if (error instanceof AppError) {
       return next(error);
+    } else if (error instanceof JsonWebTokenError) {
+      return next(new AppError(401, "Invalid refresh token"));
+    } else if (error instanceof TokenExpiredError) {
+      return next(new AppError(401, "Refresh token expired"));
     } else {
       return next(new AppError(500, "Error refreshing token"));
     }

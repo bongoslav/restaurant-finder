@@ -6,6 +6,7 @@ import {
 } from "../config/jwt";
 import { Types } from "mongoose";
 import { AppError } from "../utils/errorHandler";
+import { decode, sign } from "jsonwebtoken";
 
 export const generateTokens = async (userId: Types.ObjectId) => {
   const accessToken = generateAccessToken(userId);
@@ -45,17 +46,27 @@ export const refreshAccessToken = async (refreshToken: string) => {
   }
 
   const accessToken = generateAccessToken(user._id);
-  const newRefreshToken = generateRefreshToken(user._id);
+
+  const extendedRefreshToken = extendRefreshTokenLifetime(refreshToken);
 
   // update the user's refresh tokens
-  // remove the old one and add the new one
-  user.refreshTokens = user.refreshTokens.filter(
-    (token) => token !== refreshToken
+  // replace the old token with the extended one
+  user.refreshTokens = user.refreshTokens.map((token) =>
+    token === refreshToken ? extendedRefreshToken : token
   );
-  user.refreshTokens.push(newRefreshToken);
+
   await user.save();
 
-  return { accessToken, refreshToken: newRefreshToken };
+  return { accessToken, refreshToken: extendRefreshTokenLifetime };
+};
+
+const extendRefreshTokenLifetime = (refreshToken: string): string => {
+  const decoded = decode(refreshToken) as { [key: string]: unknown };
+
+  // Extend the expiration by 7 days from now
+  const newExp = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60;
+
+  return sign({ ...decoded, exp: newExp }, process.env.REFRESH_TOKEN_SECRET);
 };
 
 export const revokeRefreshToken = async (
