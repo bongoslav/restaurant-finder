@@ -104,7 +104,13 @@ export const logoutUser = async (
     const objectUserId = new ObjectId(req.user.userId);
     await tokenService.revokeRefreshToken(objectUserId, refreshToken);
 
-    res.clearCookie("refreshToken");
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "PROD",
+      sameSite: process.env.NODE_ENV === "PROD" ? "none" : "lax",
+      path: "/",
+      domain: process.env.NODE_ENV === "PROD" ? ".onrender.com" : undefined,
+    });
 
     res.status(200).json({
       status: "success",
