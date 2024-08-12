@@ -26,6 +26,8 @@ export const AuthContext = createContext<AuthContextType>(initialValue);
 const AuthProvider = ({ children }: ContextProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  // to prevent regenerating token upon logging out
+  const [isLoggedOut, setIsLoggedOut] = useState(false);
 
   const setAuthHeader = useCallback((token: string | null): HeadersInit => {
     const headers: HeadersInit = {
@@ -38,6 +40,8 @@ const AuthProvider = ({ children }: ContextProviderProps) => {
   }, []);
 
   const refreshToken = useCallback(async (): Promise<string | null> => {
+    if (isLoggedOut) return null;
+
     try {
       const response = await fetch(`${API_URL}/api/v1/auth/refresh-token`, {
         method: "POST",
@@ -54,9 +58,11 @@ const AuthProvider = ({ children }: ContextProviderProps) => {
       console.error("Failed to refresh token:", error);
     }
     return null;
-  }, []);
+  }, [isLoggedOut]);
 
   const checkAuth = useCallback(async () => {
+    if (isLoggedOut) return;
+
     let token = accessToken;
     if (!token) {
       token = await refreshToken();
@@ -102,11 +108,13 @@ const AuthProvider = ({ children }: ContextProviderProps) => {
       setUser(null);
       setAccessToken(null);
     }
-  }, [accessToken, setAuthHeader, refreshToken]);
+  }, [accessToken, setAuthHeader, refreshToken, isLoggedOut]);
 
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    if (!isLoggedOut) {
+      checkAuth();
+    }
+  }, [checkAuth, isLoggedOut]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -125,6 +133,7 @@ const AuthProvider = ({ children }: ContextProviderProps) => {
         ) {
           setUser(data.data.user);
           setAccessToken(data.data.accessToken);
+          setIsLoggedOut(false);
         } else {
           throw new Error("Invalid response format");
         }
@@ -148,6 +157,7 @@ const AuthProvider = ({ children }: ContextProviderProps) => {
       if (response.ok) {
         setUser(null);
         setAccessToken(null);
+        setIsLoggedOut(true);
       } else {
         throw new Error("Logout failed");
       }
