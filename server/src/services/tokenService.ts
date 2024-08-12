@@ -73,8 +73,17 @@ export const revokeRefreshToken = async (
   userId: Types.ObjectId,
   refreshToken: string
 ) => {
-  await User.updateOne(
-    { _id: userId },
-    { $pull: { refreshTokens: refreshToken } }
-  );
+  try {
+    const result = await User.updateOne(
+      { _id: userId },
+      { $pull: { refreshTokens: refreshToken } }
+    );
+
+    if (result.modifiedCount === 0) {
+      throw new AppError(404, "No such refresh token for user");
+    }
+  } catch (error) {
+    console.error("Error revoking refresh token:", error);
+    throw new AppError(500, "Error revoking refresh token");
+  }
 };

@@ -52,7 +52,7 @@ const userSchema = new mongoose.Schema<IUser>(
       default: "First Last",
       trim: true,
     },
-    refreshTokens: [{ type: [String] }],
+    refreshTokens: [{ type: String }],
   },
   { timestamps: true }
 );

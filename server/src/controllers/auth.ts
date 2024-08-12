@@ -109,7 +109,6 @@ export const logoutUser = async (
       secure: process.env.NODE_ENV === "PROD",
       sameSite: process.env.NODE_ENV === "PROD" ? "none" : "lax",
       path: "/",
-      domain: process.env.NODE_ENV === "PROD" ? ".onrender.com" : undefined,
     });
 
     res.status(200).json({
@@ -216,7 +215,7 @@ export const refreshToken = async (
     } else if (error instanceof TokenExpiredError) {
       return next(new AppError(401, "Refresh token expired"));
     } else {
-      return next(new AppError(500, "Error refreshing token"));
+      return next(new AppError(500, `Error refreshing token: ${error.message}`));
     }
   }
 };
