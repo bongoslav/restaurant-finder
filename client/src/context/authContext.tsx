@@ -2,7 +2,6 @@ import { createContext, useState, useEffect, useCallback } from "react";
 import {
   AuthContextType,
   ContextProviderProps,
-  // LoginResponse,
   SignupData,
   SignupResponse,
   User,
@@ -39,41 +38,11 @@ const AuthProvider = ({ children }: ContextProviderProps) => {
     return headers;
   }, []);
 
-  // useEffect(() => {
-  //   const checkAuth = async () => {
-  //     try {
-  //       const response = await fetch(`${API_URL}/api/v1/auth/me`, {
-  //         method: "GET",
-  //         headers: setAuthHeader(accessToken),
-  //         credentials: "include",
-  //       });
-  //       if (!response.ok) {
-  //         return;
-  //       }
-
-  //       const data = await response.json();
-  //       if (!data.data.user) {
-  //         return;
-  //       }
-
-  //       setUser(data.data.user);
-
-  //       if (!data.data.accessToken) {
-  //         return;
-  //       }
-  //       setAccessToken(data.data.accessToken);
-  //     } catch (error) {
-  //       console.error("Auth check failed:", error);
-  //     }
-  //   };
-  //   checkAuth();
-  // }, [accessToken]);
-
   const refreshToken = useCallback(async (): Promise<string | null> => {
     try {
       const response = await fetch(`${API_URL}/api/v1/auth/refresh-token`, {
         method: "POST",
-        credentials: "include", // This is important for sending the refresh token cookie
+        credentials: "include", 
       });
 
       if (response.ok) {
@@ -116,11 +85,11 @@ const AuthProvider = ({ children }: ContextProviderProps) => {
           setAccessToken(null);
         }
       } else if (response.status === 401) {
-        // Token might be expired, try refreshing
+        // token might be expired, try refreshing
         const newToken = await refreshToken();
         if (newToken) {
           setAccessToken(newToken);
-          await checkAuth(); // Retry with new token
+          await checkAuth(); // retry with new token
         } else {
           setUser(null);
           setAccessToken(null);
