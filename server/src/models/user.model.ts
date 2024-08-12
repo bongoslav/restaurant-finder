@@ -1,5 +1,4 @@
 import mongoose, { Types } from "mongoose";
-import bcrypt from "bcrypt";
 
 export interface IUser {
   _id?: Types.ObjectId;
