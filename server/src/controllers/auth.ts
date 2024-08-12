@@ -5,6 +5,7 @@ import { AuthRequest } from "../types/AuthRequest";
 import { ObjectId } from "mongodb";
 import { AppError } from "../utils/errorHandler";
 import { JsonWebTokenError, TokenExpiredError } from "jsonwebtoken";
+import setCookie from "../utils/setCookie";
 
 export const getCurrentUser = async (
   req: AuthRequest,
@@ -69,13 +70,7 @@ export const loginUser = async (
       user._id
     );
 
-    // set refresh token as an HTTP-only cookie
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    setCookie(res, "refreshToken", refreshToken);
 
     res.status(200).json({
       status: "success",
@@ -197,12 +192,7 @@ export const refreshToken = async (
 
     const result = await tokenService.refreshAccessToken(refreshToken);
 
-    res.cookie("refreshToken", result.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    setCookie(res, "refreshToken", refreshToken);
 
     res.status(200).json({
       status: "success",
