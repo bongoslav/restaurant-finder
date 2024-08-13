@@ -60,13 +60,13 @@ export const getAllRestaurants = async (
 
   const skip = (pageNumber - 1) * limitNumber;
 
+  const totalRestaurants = await Restaurant.countDocuments(query);
+
   const restaurants = await Restaurant.find(query)
     .select("-reviews") // exclude the "reviews" field
     .skip(skip)
     .limit(limitNumber)
     .sort({ [sortBy]: sortOrderNumber });
-
-  const totalRestaurants = restaurants.length;
 
   const totalPages = Math.ceil(totalRestaurants / limitNumber);
 
