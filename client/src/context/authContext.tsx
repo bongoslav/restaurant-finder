@@ -10,7 +10,6 @@ import API_URL from "../util/apiUrl";
 
 const initialValue: AuthContextType = {
   user: null,
-  accessToken: null,
   login: async () => {},
   logout: async () => {},
   signup: async () => {
@@ -21,13 +20,13 @@ const initialValue: AuthContextType = {
   isAuthenticated: false,
 };
 
+const TOKEN_REFRESH_THRESHOLD = 5 * 60 * 1000; // 5 minutes
+
 export const AuthContext = createContext<AuthContextType>(initialValue);
 
 const AuthProvider = ({ children }: ContextProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  // to prevent regenerating token upon logging out
-  const [isLoggedOut, setIsLoggedOut] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const setAuthHeader = useCallback((token: string | null): HeadersInit => {
     const headers: HeadersInit = {
@@ -39,9 +38,31 @@ const AuthProvider = ({ children }: ContextProviderProps) => {
     return headers;
   }, []);
 
-  const refreshToken = useCallback(async (): Promise<string | null> => {
-    if (isLoggedOut) return null;
+  const getTokenFromStorage = useCallback(() => {
+    return sessionStorage.getItem("accessToken");
+  }, []);
 
+  const setTokenInStorage = useCallback((token: string) => {
+    const encryptedToken = token;
+    sessionStorage.setItem("accessToken", encryptedToken);
+  }, []);
+
+  const removeTokenFromStorage = useCallback(() => {
+    sessionStorage.removeItem("accessToken");
+  }, []);
+
+  const isTokenExpiringSoon = useCallback((token: string) => {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const expirationTime = payload.exp * 1000; // convert to milliseconds
+      return expirationTime - Date.now() < TOKEN_REFRESH_THRESHOLD;
+    } catch (error) {
+      console.error("Error parsing token:", error);
+      return true; // assume token is expiring if we can't parse it
+    }
+  }, []);
+
+  const refreshToken = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/api/v1/auth/refresh-token`, {
         method: "POST",
@@ -51,6 +72,7 @@ const AuthProvider = ({ children }: ContextProviderProps) => {
       if (response.ok) {
         const data = await response.json();
         if (data.status === "success" && data.data.accessToken) {
+          setTokenInStorage(data.data.accessToken);
           return data.data.accessToken;
         }
       }
@@ -58,20 +80,31 @@ const AuthProvider = ({ children }: ContextProviderProps) => {
       console.error("Failed to refresh token:", error);
     }
     return null;
-  }, [isLoggedOut]);
+  }, [setTokenInStorage]);
+
+  const checkAndRefreshTokenIfNeeded = useCallback(async () => {
+    const token = getTokenFromStorage();
+    if (token && isTokenExpiringSoon(token)) {
+      const newToken = await refreshToken();
+      if (newToken) {
+        setTokenInStorage(newToken);
+        return newToken;
+      }
+    }
+    return token;
+  }, [
+    getTokenFromStorage,
+    isTokenExpiringSoon,
+    refreshToken,
+    setTokenInStorage,
+  ]);
 
   const checkAuth = useCallback(async () => {
-    if (isLoggedOut) return;
-
-    let token = accessToken;
+    const token = await checkAndRefreshTokenIfNeeded();
     if (!token) {
-      token = await refreshToken();
-      if (!token) {
-        setUser(null);
-        setAccessToken(null);
-        return;
-      }
-      setAccessToken(token);
+      setUser(null);
+      setIsAuthenticated(false);
+      return;
     }
 
     try {
@@ -85,36 +118,24 @@ const AuthProvider = ({ children }: ContextProviderProps) => {
         const data = await response.json();
         if (data.status === "success" && data.data.user) {
           setUser(data.data.user);
+          setIsAuthenticated(true);
         } else {
-          setUser(null);
-          setAccessToken(null);
-        }
-      } else if (response.status === 401) {
-        // token might be expired, try refreshing
-        const newToken = await refreshToken();
-        if (newToken) {
-          setAccessToken(newToken);
-          await checkAuth(); // retry with new token
-        } else {
-          setUser(null);
-          setAccessToken(null);
+          throw new Error("Invalid user data");
         }
       } else {
-        setUser(null);
-        setAccessToken(null);
+        throw new Error("Auth check failed");
       }
     } catch (error) {
       console.error("Auth check failed:", error);
       setUser(null);
-      setAccessToken(null);
+      setIsAuthenticated(false);
+      removeTokenFromStorage();
     }
-  }, [accessToken, setAuthHeader, refreshToken, isLoggedOut]);
+  }, [checkAndRefreshTokenIfNeeded, setAuthHeader, removeTokenFromStorage]);
 
   useEffect(() => {
-    if (!isLoggedOut) {
-      checkAuth();
-    }
-  }, [checkAuth, isLoggedOut]);
+    checkAuth();
+  }, [checkAuth]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -132,8 +153,8 @@ const AuthProvider = ({ children }: ContextProviderProps) => {
           data.data.accessToken
         ) {
           setUser(data.data.user);
-          setAccessToken(data.data.accessToken);
-          setIsLoggedOut(false);
+          setTokenInStorage(data.data.accessToken);
+          setIsAuthenticated(true);
         } else {
           throw new Error("Invalid response format");
         }
@@ -149,15 +170,16 @@ const AuthProvider = ({ children }: ContextProviderProps) => {
 
   const logout = async () => {
     try {
+      const token = getTokenFromStorage();
       const response = await fetch(`${API_URL}/api/v1/auth/logout`, {
         method: "POST",
-        headers: setAuthHeader(accessToken),
+        headers: setAuthHeader(token),
         credentials: "include",
       });
       if (response.ok) {
         setUser(null);
-        setAccessToken(null);
-        setIsLoggedOut(true);
+        setIsAuthenticated(true);
+        removeTokenFromStorage();
       } else {
         throw new Error("Logout failed");
       }
@@ -191,11 +213,10 @@ const AuthProvider = ({ children }: ContextProviderProps) => {
 
   const value = {
     user,
-    accessToken,
     login,
     logout,
     signup,
-    isAuthenticated: user !== null && accessToken !== null,
+    isAuthenticated,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
