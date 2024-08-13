@@ -7,10 +7,10 @@ const WorkingHours = ({ hours }: { hours: string[] }) => {
     <Box>
       <Heading size="6">Hours</Heading>
       <Flex direction="column">
-        {daysOfWeek.map((day, index) => (
-          <Text key={day}>
-            {day}:{" "}
-            {hours[index]}
+        {hours.map((hour, index) => (
+          <Text key={daysOfWeek[index]}>
+            {daysOfWeek[index]}:{" "}
+            {hour}
           </Text>
         ))}
       </Flex>

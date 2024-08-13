@@ -117,12 +117,18 @@ const EditRestaurantDialog: React.FC<EditRestaurantDialogProps> = ({
             </label>
             <Flex gap="3" mt="4" justify="end">
               <Dialog.Close>
-                <Button variant="soft" color="gray">
+                <Button
+                  variant="soft"
+                  color="gray"
+                  style={{ cursor: "pointer" }}
+                >
                   Cancel
                 </Button>
               </Dialog.Close>
               <Dialog.Close>
-                <Button type="submit">Save Changes</Button>
+                <Button type="submit" style={{ cursor: "pointer" }}>
+                  Save Changes
+                </Button>
               </Dialog.Close>
             </Flex>
           </Flex>

@@ -81,7 +81,7 @@ const RestaurantDetailsPage = () => {
                 restaurant={restaurant}
                 onRestaurantUpdated={handleRestaurantUpdated}
               >
-                <Button>Edit Restaurant</Button>
+                <Button style={{ cursor: "pointer" }}>Edit Restaurant</Button>
               </EditRestaurantDialog>
             )}
           </Flex>
