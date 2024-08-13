@@ -2,6 +2,7 @@ import { Card, Text, Flex, Badge, Heading } from "@radix-ui/themes";
 import { StarFilledIcon } from "@radix-ui/react-icons";
 import { GetAllRestaurantsResponse } from "../../types/Restaurant";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 
 function RestaurantCard({
   restaurant,
@@ -9,6 +10,8 @@ function RestaurantCard({
   restaurant: GetAllRestaurantsResponse;
 }) {
   const { _id, images, name, cuisine, averageRating } = restaurant;
+  const { user } = useAuth();
+  const isOwner = user && user.id === restaurant.ownerId;
 
   const headImage = images[0];
 
@@ -27,6 +30,7 @@ function RestaurantCard({
           <Heading as="h3" size="5" weight="bold">
             {name}
           </Heading>
+          {isOwner && <Badge color="blue">Owner</Badge>}
           <Badge>{cuisine}</Badge>
           <Flex align="center" gap="1">
             {averageRating ? (

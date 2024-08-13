@@ -18,6 +18,7 @@ const initialValue: AuthContextType = {
     throw new Error("Signup function not implemented");
   },
   isAuthenticated: false,
+  getTokenFromStorage: () => {}
 };
 
 const TOKEN_REFRESH_THRESHOLD = 5 * 60 * 1000; // 5 minutes
@@ -155,6 +156,7 @@ const AuthProvider = ({ children }: ContextProviderProps) => {
           setUser(data.data.user);
           setTokenInStorage(data.data.accessToken);
           setIsAuthenticated(true);
+          window.location.reload();
         } else {
           throw new Error("Invalid response format");
         }
@@ -180,6 +182,7 @@ const AuthProvider = ({ children }: ContextProviderProps) => {
         setUser(null);
         setIsAuthenticated(true);
         removeTokenFromStorage();
+        window.location.reload();
       } else {
         throw new Error("Logout failed");
       }
@@ -217,6 +220,7 @@ const AuthProvider = ({ children }: ContextProviderProps) => {
     logout,
     signup,
     isAuthenticated,
+    getTokenFromStorage
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

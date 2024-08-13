@@ -4,6 +4,7 @@ import { ThemeContext } from "../context/themeContext";
 import LoginDialog from "./LoginDialog";
 import SignupDialog from "./SignupDialog";
 import { useAuth } from "../hooks/useAuth";
+import { Link } from "react-router-dom";
 
 function Header() {
   const { theme, toggleTheme } = useContext(ThemeContext);
@@ -11,7 +12,9 @@ function Header() {
 
   return (
     <Flex p="4" justify="between" align="center">
-      <Heading>Restaurant Finder</Heading>
+      <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
+        <Heading>Restaurant Finder</Heading>
+      </Link>
       <Flex gap="4" align="center" style={{ marginLeft: "auto" }}>
         {isAuthenticated && user ? (
           <>

@@ -20,6 +20,7 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   signup: (signupData: SignupData) => Promise<User>;
   isAuthenticated: boolean;
+  getTokenFromStorage: () => void;
 }
 
 export interface ContextProviderProps {

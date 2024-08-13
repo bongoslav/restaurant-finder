@@ -5,7 +5,6 @@ import "@radix-ui/themes/styles.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import RestaurantDetailsPage from "./pages/RestaurantDetailsPage.tsx";
 import RestaurantListPage from "./pages/RestaurantsListPage.tsx";
-import ProtectedRoute from "./components/ProtectedRoute.tsx";
 
 // TODO: loader, error page
 export const router = createBrowserRouter([
@@ -19,11 +18,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "restaurant/:id",
-        element: (
-          <ProtectedRoute>
-            <RestaurantDetailsPage />
-          </ProtectedRoute>
-        ),
+        element: <RestaurantDetailsPage />,
       },
     ],
   },

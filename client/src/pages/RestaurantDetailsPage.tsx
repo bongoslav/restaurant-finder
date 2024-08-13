@@ -1,20 +1,17 @@
 import { useParams } from "react-router-dom";
-import {
-  Container,
-  Heading,
-  Text,
-  Flex,
-  Box,
-  Badge,
-  Separator,
-  Skeleton,
-} from "@radix-ui/themes";
-import { StarFilledIcon } from "@radix-ui/react-icons";
+import { Container, Text, Flex, Box, Skeleton, Button } from "@radix-ui/themes";
 import useSWR from "swr";
 import fetcher from "../util/fetcher";
 import { Restaurant } from "../types/Restaurant";
 import WorkingHours from "../components/RestaurantPage/WorkingHours";
 import API_URL from "../util/apiUrl";
+import { useAuth } from "../hooks/useAuth";
+import AddReviewForm from "../components/RestaurantPage/AddReviewForm";
+import RestaurantImage from "../components/RestaurantPage/RestaurantImage";
+import RatingSummary from "../components/RestaurantPage/RatingSummary";
+import LocationInfo from "../components/RestaurantPage/LocationInfo";
+import ReviewsList from "../components/RestaurantPage/ReviewList";
+import EditRestaurantDialog from "../components/RestaurantPage/EditRestaurantDialog";
 
 interface RestaurantFetchResponse {
   status: string;
@@ -23,10 +20,13 @@ interface RestaurantFetchResponse {
 
 const RestaurantDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
+  const { isAuthenticated, user } = useAuth();
+
   const {
     data: restaurantResponse,
     error: restaurantFetchError,
     isLoading,
+    mutate,
   } = useSWR<RestaurantFetchResponse>(
     `${API_URL}/api/v1/restaurants/${id}`,
     fetcher
@@ -51,76 +51,64 @@ const RestaurantDetailsPage = () => {
     reviews,
   } = restaurantResponse.data;
 
+  const restaurant = restaurantResponse.data;
+  const isOwner = user && user.id === restaurant.ownerId;
+
+  const handleReviewAdded = () => {
+    mutate(); // refetch the restaurant data, including the new review
+  };
+
+  const handleRestaurantUpdated = () => {
+    mutate();
+  };
+
   return (
     <Container size="4">
       <Flex direction="column" gap="4">
         <Skeleton loading={isLoading}>
-          <Box
-            style={{
-              borderRadius: "8px",
-              overflow: "hidden",
-              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-              aspectRatio: "3 / 1",
-              width: "100%",
-            }}
-          >
-            <img
-              src={images[0]}
-              alt={name}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
-            />
-          </Box>
+          <RestaurantImage image={images[0]} name={name} />
         </Skeleton>
 
         <Skeleton loading={isLoading}>
-          <Flex gap="2" align="center">
-            <StarFilledIcon />
-            <Text weight="bold">
-              {reviews.length > 0
-                ? (
-                    reviews.reduce((acc, review) => acc + review.rating, 0) /
-                    reviews.length
-                  ).toFixed(1)
-                : "No reviews yet"}
-            </Text>
-            <Text>({reviews.length} reviews)</Text>
-            <Separator orientation="vertical" />
-            <Badge>{cuisine}</Badge>
-            <Separator orientation="vertical" />
-            <Text>{"$".repeat(priceRange)}</Text>
+          <Flex justify="between" align="center">
+            <RatingSummary
+              reviews={reviews}
+              cuisine={cuisine}
+              priceRange={priceRange}
+            />
+            {isOwner && (
+              <EditRestaurantDialog
+                restaurant={restaurant}
+                onRestaurantUpdated={handleRestaurantUpdated}
+              >
+                <Button>Edit Restaurant</Button>
+              </EditRestaurantDialog>
+            )}
           </Flex>
         </Skeleton>
 
         <Flex justify="between">
           <Box style={{ flex: 1 }}>
             <Skeleton loading={isLoading}>
-              <Box>
-                <Heading size="6">Location</Heading>
-                <Text>{location}</Text>
-              </Box>
+              <LocationInfo location={location} />
             </Skeleton>
 
             <Box mt="4">
               <Skeleton loading={isLoading}>
-                <Heading size="6">Reviews ({reviewCount})</Heading>
+                <ReviewsList
+                  reviews={reviews}
+                  reviewCount={reviewCount}
+                  isLoading={isLoading}
+                />
               </Skeleton>
-              {reviews.map((review) => (
-                <Skeleton loading={isLoading} key={review._id}>
-                  <Box key={review._id} mb="3">
-                    <Flex gap="2" align="center">
-                      <StarFilledIcon />
-                      <Text weight="bold">
-                        {review.rating} - {review.title}
-                      </Text>
-                    </Flex>
-                    <Text>{review.text}</Text>
-                  </Box>
-                </Skeleton>
-              ))}
+              {isAuthenticated && (
+                <Box mt="4">
+                  <AddReviewForm
+                    restaurantId={id!}
+                    onReviewAdded={handleReviewAdded}
+                  />
+                </Box>
+              )}
             </Box>
           </Box>
 
