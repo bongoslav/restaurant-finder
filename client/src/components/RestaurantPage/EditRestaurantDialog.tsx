@@ -17,11 +17,11 @@ interface EditRestaurantDialogProps {
   children: React.ReactNode;
 }
 
-const EditRestaurantDialog: React.FC<EditRestaurantDialogProps> = ({
+const EditRestaurantDialog = ({
   restaurant,
   onRestaurantUpdated,
   children,
-}) => {
+}: EditRestaurantDialogProps) => {
   const [name, setName] = useState(restaurant.name);
   const [location, setLocation] = useState(restaurant.location);
   const [priceRange, setPriceRange] = useState(
