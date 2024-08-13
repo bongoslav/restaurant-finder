@@ -5,12 +5,13 @@ import "@radix-ui/themes/styles.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import RestaurantDetailsPage from "./pages/RestaurantDetailsPage.tsx";
 import RestaurantListPage from "./pages/RestaurantsListPage.tsx";
+import ErrorPage from "./pages/ErrorPage.tsx";
 
-// TODO: loader, error page
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
+    errorElement: <ErrorPage />,
     children: [
       {
         path: "",
