@@ -8,7 +8,7 @@ Restaurant Finder is a full-stack web application built with the MERN (MongoDB, 
 ## Live Demo
 
 - **Client**: [https://restaurant-finder-bongoslav.netlify.app/](https://restaurant-finder-bongoslav.netlify.app/)
-- **Server**: [https://restaurant-finder-sdq5.onrender.com/api/v1/restaurants](https://restaurant-finder-sdq5.onrender.com/api/v1/restaurants)
+- **Server**: [https://restaurant-finder-sdq5.onrender.com/api/v1/restaurants](https://restaurant-finder-sdq5.onrender.com/api/v1/restaurants). Please note that `Render.com` free tier automatically puts the app to sleep if no requests are made recently. So if the server is down, most likely you need to make a single request and it will spin up after a minute.
 
 I have created a demo user for easier use with credentials:
 - email: `test@test.com`
