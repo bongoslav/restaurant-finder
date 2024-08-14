@@ -10,7 +10,7 @@ export const setCookie = (
   value: string,
   options: ExtendedCookieOptions = {}
 ): void => {
-  const isProduction = process.env.NODE_ENV === "PROD";
+  const isProduction = process.env.NODE_ENV === "production";
 
   const defaultOptions: ExtendedCookieOptions = {
     httpOnly: true,

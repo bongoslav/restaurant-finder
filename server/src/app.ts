@@ -18,7 +18,7 @@ app.use(limiter);
 app.use(cookieParser());
 app.use(
   cors({
-    origin: NODE_ENV === "PROD" ? CLIENT_PROD_URL : CLIENT_DEV_URL,
+    origin: NODE_ENV === "production" ? CLIENT_PROD_URL : CLIENT_DEV_URL,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],

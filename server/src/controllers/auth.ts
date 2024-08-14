@@ -106,8 +106,8 @@ export const logoutUser = async (
 
     res.clearCookie("refreshToken", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "PROD",
-      sameSite: process.env.NODE_ENV === "PROD" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       path: "/",
     });
 
